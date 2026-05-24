@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typori — Font Specimen Tool</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-brand">Typori</div>
+
+    <nav class="mode-nav" aria-label="View mode">
+      <button class="mode-btn active" data-mode="paragraph">Paragraph</button>
+      <button class="mode-btn" data-mode="syllabic-grid">Syllabic Grid</button>
+      <button class="mode-btn" data-mode="device-mockup">Device Mockup</button>
+    </nav>
+
+    <div class="header-spacer"></div>
+
+    <div class="header-actions">
+      <button class="hbtn" id="btn-add-block">+ Block</button>
+
+      <!-- Export dropdown -->
+      <div class="dropdown" style="position:relative">
+        <button class="hbtn" id="btn-export-menu">Export ▾</button>
+        <div class="dropdown-menu" id="export-menu">
+          <button class="dropdown-item" id="btn-export-png">PNG image</button>
+          <button class="dropdown-item" id="btn-export-pdf">PDF</button>
+          <div class="dropdown-sep"></div>
+          <button class="dropdown-item" id="btn-export-json">JSON config</button>
+          <div class="dropdown-sep"></div>
+          <button class="dropdown-item" id="btn-save-file">Save to file… <kbd>⌘S</kbd></button>
+        </div>
+      </div>
+
+      <label class="hbtn" for="json-input">Import</label>
+      <input type="file" id="json-input" accept=".json,.xml" hidden>
+
+      <label class="hbtn primary" for="font-input">Load Font</label>
+      <input type="file" id="font-input" accept=".ttf,.otf,.woff,.woff2" multiple hidden>
+    </div>
+  </header>
+
+  <!-- ── Page nav (below header) ────────────────────────── -->
+  <div class="page-nav-wrapper">
+    <div class="page-nav" id="page-nav"></div>
+  </div>
+
+  <!-- ── App body ───────────────────────────────────────── -->
+  <div class="app-body">
+
+    <!-- Font drop overlay -->
+    <div class="font-drop-overlay" id="font-drop-overlay">
+      <div class="font-drop-message">Drop font file to load</div>
+    </div>
+
+    <!-- Specimen pane -->
+    <main class="specimen-pane" id="specimen-pane">
+      <div class="specimen-scroll">
+        <div class="specimen-canvas" id="specimen-canvas"></div>
+      </div>
+    </main>
+
+    <!-- Controls pane -->
+    <aside class="controls-pane" id="controls-pane">
+      <div class="controls-scroll">
+
+        <!-- ── Fonts ───────────────────────────────── -->
+        <section class="ctrl-section">
+          <h2 class="ctrl-section-title">Fonts</h2>
+          <div class="font-list" id="font-list">
+            <div class="font-empty">No fonts loaded. Drag &amp; drop a TTF/OTF/WOFF file, or click <strong>Load Font</strong>.</div>
+          </div>
+          <div class="ctrl-btn-row" style="margin-top:6px;">
+            <label class="ctrl-btn" for="font-input">+ Load Font</label>
+          </div>
+        </section>
+
+        <!-- ── Templates ──────────────────────────── -->
+        <section class="ctrl-section" id="template-picker">
+          <h2 class="ctrl-section-title">Templates</h2>
+          <div class="template-links" style="flex-wrap:wrap;gap:4px">
+            <button class="link-btn" data-load-template="default">Classic</button>
+            <button class="link-btn" data-load-template="editorial">Editorial</button>
+            <button class="link-btn" data-load-template="poster">Poster</button>
+            <button class="link-btn" data-load-template="broadcast">Broadcast</button>
+            <button class="link-btn" data-load-template="dense">Dense Text</button>
+            <button class="link-btn" data-load-template="odia">Odia Script</button>
+          </div>
+        </section>
+
+        <!-- ── No selection ────────────────────────── -->
+        <div class="no-selection-hint" id="no-selection-hint">
+          Click a block to edit its properties.
+        </div>
+
+        <!-- ── Block controls ──────────────────────── -->
+        <section class="ctrl-section" id="block-controls" style="display:none">
+          <h2 class="ctrl-section-title">Block</h2>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label" for="ctrl-type">Type</label>
+            <select class="ctrl-select" id="ctrl-type">
+              <option value="glyph">Glyph</option>
+              <option value="h1">Heading 1</option>
+              <option value="h2">Heading 2</option>
+              <option value="sentence">Sentence</option>
+              <option value="word">Word</option>
+              <option value="syllable">Syllable</option>
+              <option value="paragraph">Paragraph</option>
+              <option value="survey-question">Survey Question</option>
+            </select>
+          </div>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label">Column Width</label>
+            <div class="col-btns">
+              <button class="col-btn ctrl-btn" data-col="1" title="Half width — use two blocks side by side">½ Width</button>
+              <button class="col-btn ctrl-btn" data-col="2" title="Full width — spans both columns">Full Width</button>
+            </div>
+          </div>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label" for="ctrl-font">Font</label>
+            <select class="ctrl-select" id="ctrl-font">
+              <option value="">— none / inherit —</option>
+            </select>
+          </div>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label">Size</label>
+            <div class="ctrl-input-group">
+              <input type="range" class="ctrl-range" id="ctrl-size-range" min="8" max="240" step="1" value="16">
+              <input type="number" class="ctrl-number" id="ctrl-size-num" min="8" max="240" value="16">
+              <span class="ctrl-unit">px</span>
+            </div>
+          </div>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label">Line Height</label>
+            <div class="ctrl-input-group">
+              <input type="range" class="ctrl-range" id="ctrl-lh-range" min="0.8" max="4" step="0.05" value="1.65">
+              <input type="number" class="ctrl-number" id="ctrl-lh-num" min="0.8" max="4" step="0.05" value="1.65">
+            </div>
+          </div>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label">Letter Spacing</label>
+            <div class="ctrl-input-group">
+              <input type="range" class="ctrl-range" id="ctrl-ls-range" min="-5" max="30" step="0.5" value="0">
+              <input type="number" class="ctrl-number" id="ctrl-ls-num" min="-5" max="30" step="0.5" value="0">
+              <span class="ctrl-unit">px</span>
+            </div>
+          </div>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label">Alignment</label>
+            <div class="align-btns">
+              <button class="align-btn" data-align="left" title="Left">
+                <svg width="14" height="11" viewBox="0 0 14 11" fill="currentColor"><rect x="0" y="0" width="14" height="2" rx="1"/><rect x="0" y="4.5" width="9" height="2" rx="1"/><rect x="0" y="9" width="12" height="2" rx="1"/></svg>
+              </button>
+              <button class="align-btn" data-align="center" title="Center">
+                <svg width="14" height="11" viewBox="0 0 14 11" fill="currentColor"><rect x="0" y="0" width="14" height="2" rx="1"/><rect x="2.5" y="4.5" width="9" height="2" rx="1"/><rect x="1" y="9" width="12" height="2" rx="1"/></svg>
+              </button>
+              <button class="align-btn" data-align="right" title="Right">
+                <svg width="14" height="11" viewBox="0 0 14 11" fill="currentColor"><rect x="0" y="0" width="14" height="2" rx="1"/><rect x="5" y="4.5" width="9" height="2" rx="1"/><rect x="2" y="9" width="12" height="2" rx="1"/></svg>
+              </button>
+              <button class="align-btn" data-align="justify" title="Justify">
+                <svg width="14" height="11" viewBox="0 0 14 11" fill="currentColor"><rect x="0" y="0" width="14" height="2" rx="1"/><rect x="0" y="4.5" width="14" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label">Colors</label>
+            <div class="color-row">
+              <label class="color-swatch-label" title="Text color">
+                <span>Text</span>
+                <input type="color" class="color-input" id="ctrl-color" value="#111111">
+              </label>
+              <label class="color-swatch-label" title="Background">
+                <span>BG</span>
+                <input type="color" class="color-input" id="ctrl-bgcolor" value="#ffffff">
+              </label>
+              <button class="color-transparent-btn active" id="btn-transparent-bg" title="Transparent background">None</button>
+              <button class="ctrl-btn" id="btn-invert" style="margin-left:4px">Invert</button>
+            </div>
+          </div>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label">Background Image</label>
+            <div class="ctrl-btn-row">
+              <label class="ctrl-btn" for="ctrl-bg-image">Upload Image</label>
+              <input type="file" id="ctrl-bg-image" accept="image/*" hidden>
+              <button class="ctrl-btn" id="btn-clear-bg-image">Clear</button>
+            </div>
+          </div>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label">Padding</label>
+            <div class="ctrl-input-group">
+              <input type="range" class="ctrl-range" id="ctrl-padding-range" min="0" max="80" step="2" value="0">
+              <input type="number" class="ctrl-number" id="ctrl-padding-num" min="0" max="80" value="0">
+              <span class="ctrl-unit">px</span>
+            </div>
+          </div>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label">Border</label>
+            <div class="ctrl-input-group">
+              <input type="number" class="ctrl-number" id="ctrl-border-width" min="0" max="20" value="0">
+              <span class="ctrl-unit">px</span>
+              <label class="color-swatch-label" title="Border color" style="margin-left:4px">
+                <span>Color</span>
+                <input type="color" class="color-input" id="ctrl-border-color" value="#111111">
+              </label>
+            </div>
+          </div>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label" for="ctrl-label">Label</label>
+            <input type="text" class="ctrl-input" id="ctrl-label" placeholder="e.g. Body 16pt">
+          </div>
+
+          <div class="ctrl-btn-row" style="margin-top:4px">
+            <button class="ctrl-btn" id="btn-move-up" title="Move block up">↑</button>
+            <button class="ctrl-btn" id="btn-move-down" title="Move block down">↓</button>
+            <button class="ctrl-btn" id="btn-duplicate" title="⌘D">Dup</button>
+            <button class="ctrl-btn danger" id="btn-delete">Del</button>
+          </div>
+
+          <div class="ctrl-section-sub">CSS Snippet</div>
+          <pre class="css-preview" id="css-preview"></pre>
+          <button class="ctrl-btn full" id="btn-copy-css">Copy CSS</button>
+        </section>
+
+        <!-- ── Global settings ─────────────────────── -->
+        <section class="ctrl-section" id="global-controls">
+          <h2 class="ctrl-section-title">Global</h2>
+          <div class="ctrl-row">
+            <label class="ctrl-label">Body Font Size</label>
+            <div class="ctrl-input-group">
+              <input type="range" class="ctrl-range" id="ctrl-global-size" min="8" max="72" step="1" value="16">
+              <input type="number" class="ctrl-number" id="ctrl-global-size-num" min="8" max="72" value="16">
+              <span class="ctrl-unit">px</span>
+            </div>
+          </div>
+          <div class="ctrl-row">
+            <label class="ctrl-label">Body Line Height</label>
+            <div class="ctrl-input-group">
+              <input type="range" class="ctrl-range" id="ctrl-global-lh" min="0.8" max="3" step="0.05" value="1.65">
+              <input type="number" class="ctrl-number" id="ctrl-global-lh-num" min="0.8" max="3" step="0.05" value="1.65">
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Syllabic Grid generator ─────────────── -->
+        <section class="ctrl-section" id="grid-generator" style="display:none">
+          <h2 class="ctrl-section-title">Grid Generator</h2>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label" for="ctrl-consonants">Consonants</label>
+            <textarea class="ctrl-textarea" id="ctrl-consonants" rows="4" placeholder="Paste consonants — one per line or space-separated&#10;e.g.  ক ଖ ग ..."></textarea>
+          </div>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label" for="ctrl-vowels">Vowel Signs (matras)</label>
+            <textarea class="ctrl-textarea" id="ctrl-vowels" rows="5" placeholder="One per line. First line = inherent vowel (leave blank).&#10;&#10;ा&#10;ि&#10;ी"></textarea>
+            <div class="grid-hint">First (empty) line = inherent vowel / base form. Then diacritics.</div>
+          </div>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label" for="ctrl-conjuncts">Conjuncts / Compounds</label>
+            <textarea class="ctrl-textarea" id="ctrl-conjuncts" rows="3" placeholder="Space or newline separated&#10;e.g. ଜ୍ଞ କ୍ଷ ଦ୍ୱ"></textarea>
+            <div class="grid-hint">These appear in a separate section below the barakhadi grid.</div>
+          </div>
+
+          <div class="ctrl-row">
+            <label class="ctrl-label">Cell Font Size</label>
+            <div class="ctrl-input-group">
+              <input type="range" class="ctrl-range" id="ctrl-grid-size" min="12" max="120" step="2" value="28">
+              <input type="number" class="ctrl-number" id="ctrl-grid-size-num" min="12" max="120" value="28">
+              <span class="ctrl-unit">px</span>
+            </div>
+          </div>
+
+          <button class="ctrl-btn full primary" id="btn-generate-grid">Generate Grid</button>
+
+          <div class="template-links" style="margin-top:8px">
+            <label class="ctrl-label">Templates:</label>
+            <button class="link-btn" data-template="odia">Odia</button>
+            <button class="link-btn" data-template="devanagari">Devanagari</button>
+          </div>
+        </section>
+
+        <!-- ── Device selector ─────────────────────── -->
+        <section class="ctrl-section" id="device-selector" style="display:none">
+          <h2 class="ctrl-section-title">Device Frame</h2>
+          <div class="device-btns">
+            <button class="device-btn active" data-device="phone">Phone</button>
+            <button class="device-btn" data-device="tablet">Tablet</button>
+            <button class="device-btn" data-device="desktop">Desktop</button>
+          </div>
+        </section>
+
+        <!-- ── Survey ──────────────────────────────── -->
+        <section class="ctrl-section">
+          <h2 class="ctrl-section-title">
+            Survey
+            <button class="toggle-btn" id="btn-toggle-survey">Show</button>
+          </h2>
+          <div id="survey-body" style="display:none">
+            <div id="survey-questions"></div>
+            <button class="ctrl-btn full" id="btn-add-survey-q" style="margin-bottom:8px">+ Add Question</button>
+            <div class="ctrl-btn-row">
+              <button class="ctrl-btn" id="btn-export-survey">Export Questions</button>
+              <button class="ctrl-btn" id="btn-export-responses">Export Responses</button>
+            </div>
+            <div class="grid-hint" style="margin-top:8px">Export questions as JSON and share by email or upload to the repo — no login needed.</div>
+          </div>
+        </section>
+
+        <!-- ── Keyboard hints ──────────────────────── -->
+        <div class="kbd-hints">
+          <span><kbd>⌘D</kbd> dup</span>
+          <span><kbd>⌘±</kbd> size</span>
+          <span><kbd>⌘S</kbd> save</span>
+          <span><kbd>⇧⌦</kbd> delete</span>
+          <span><kbd>Esc</kbd> deselect</span>
+        </div>
+
+      </div><!-- /controls-scroll -->
+
+      <!-- Footer inside controls pane -->
+      <footer class="app-footer">
+        <div class="footer-inner">
+          <span class="footer-brand">Typori v2.0</span>
+          <span class="footer-sep">·</span>
+          <span>© Subhashish Panigrahi</span>
+          <span class="footer-sep">·</span>
+          <a href="https://github.com/subhashish/typori" class="footer-link" target="_blank">Repository</a>
+          <span class="footer-sep">·</span>
+          <span>MIT License</span>
+        </div>
+      </footer>
+
+    </aside>
+
+  </div><!-- /app-body -->
+
+  <!-- Print content (hidden; shown only in @media print) -->
+  <div id="print-all-pages"></div>
+
+  <!-- PDF Export Modal -->
+  <div class="modal-overlay" id="pdf-export-modal" style="display:none">
+    <div class="modal">
+      <h2 class="modal-title">Export PDF</h2>
+
+      <div class="modal-section">
+        <label class="modal-label" for="pdf-page-size">Page Size</label>
+        <select class="ctrl-select" id="pdf-page-size">
+          <!-- populated by JS -->
+        </select>
+      </div>
+
+      <div class="modal-section">
+        <label class="modal-label">Pages to include</label>
+        <div id="pdf-page-list" class="pdf-page-list"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="ctrl-btn" id="pdf-export-cancel">Cancel</button>
+        <button class="ctrl-btn primary" id="pdf-export-confirm">Export PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CDN libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.3.4/opentype.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
