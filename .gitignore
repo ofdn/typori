@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Claude Code config
+.claude/
+
+# User data / private
+typori-responses.csv
+
+# Generated output
+download.pdf
+
+# Scratch / drafts
+stitch_typora_font_previewer/

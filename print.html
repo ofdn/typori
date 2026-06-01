@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typori — Print Testing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --orange: #d34000; --orange-dark: #a93100;
+  --ink: #1a1c1c; --ink-mid: #5c4037; --ink-faint: #916f65;
+  --paper: #f7f5f3; --paper-dim: #edeae7; --paper-dimmer: #e2dfdc;
+  --white: #fefcfa; --newsprint: #f3edda;
+  --ff-sans: 'Hanken Grotesk', system-ui, sans-serif;
+  --ff-mono: 'JetBrains Mono', monospace;
+  --font-title:   'Hanken Grotesk', system-ui, sans-serif;
+  --font-sub:     'Hanken Grotesk', system-ui, sans-serif;
+  --font-heading: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-body:    'Hanken Grotesk', system-ui, sans-serif;
+}
+html { background: var(--paper); color: var(--ink); font-family: var(--ff-sans); }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+
+.typo-title   { font-family: var(--font-title); }
+.typo-sub     { font-family: var(--font-sub); }
+.typo-heading { font-family: var(--font-heading); }
+.typo-body    { font-family: var(--font-body); }
+
+/* ── Header ─────────────────────────────────────────────────────── */
+.site-header {
+  position: sticky; top: 0; z-index: 200;
+  background: var(--paper); display: flex; flex-direction: column;
+  border-bottom: 2px solid var(--paper-dimmer);
+}
+.nav-row {
+  display: flex; align-items: center; padding: 0 32px; height: 52px;
+  border-bottom: 1px solid var(--paper-dimmer); gap: 0;
+}
+.wordmark {
+  font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink); text-decoration: none; margin-right: 28px;
+}
+.page-tabs { display: flex; }
+.ptab {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0 18px; height: 52px; display: flex; align-items: center;
+  color: var(--ink-faint); text-decoration: none; border-right: 1px solid var(--paper-dimmer);
+  border-left: 1px solid var(--paper-dimmer); margin-left: -1px; transition: color 100ms;
+}
+.ptab:hover { color: var(--ink); }
+.ptab.active { color: var(--ink); border-bottom: 2px solid var(--orange); }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.ctrl-select-sm {
+  background: var(--white); border: 1px solid var(--paper-dimmer); color: var(--ink);
+  font-family: var(--ff-mono); font-size: 10px; padding: 5px 22px 5px 8px; outline: none; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23916f65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 7px center;
+}
+.export-btn {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 6px 12px; border: 1px solid var(--paper-dimmer);
+  background: transparent; color: var(--ink-faint); cursor: pointer; transition: all 100ms;
+}
+.export-btn:hover { border-color: var(--ink); color: var(--ink); }
+.export-btn.primary { background: var(--orange); border-color: var(--orange); color: var(--white); }
+.export-btn.primary:hover { background: var(--orange-dark); }
+
+.ctrl-row {
+  display: flex; align-items: stretch; border-bottom: 1px solid var(--paper-dimmer);
+  background: var(--white); min-height: 40px; overflow-x: auto;
+}
+.ctrl-cell {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 12px; border-right: 1px solid var(--paper-dimmer); flex-shrink: 0;
+}
+.ctrl-cell.grow { flex: 1; }
+.ctrl-label {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-faint); white-space: nowrap;
+}
+.ctrl-input {
+  background: transparent; border: 1px solid transparent; color: var(--ink);
+  font-family: var(--ff-sans); font-size: 12px; padding: 4px 6px; outline: none; min-width: 0;
+}
+.ctrl-input:focus { border-color: var(--paper-dimmer); background: var(--paper); }
+.ctrl-input.wide { width: 200px; } .ctrl-input.med { width: 140px; }
+.ctrl-input.sm { width: 90px; }
+.ctrl-select {
+  background: transparent; border: 1px solid var(--paper-dimmer); color: var(--ink);
+  font-family: var(--ff-mono); font-size: 10px; padding: 4px 20px 4px 6px; outline: none; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23916f65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 6px center;
+}
+.ctrl-select:focus { border-color: var(--orange); }
+.ctrl-btn {
+  font-family: var(--ff-mono); font-size: 10px; padding: 4px 10px;
+  border: 1px solid var(--paper-dimmer); background: transparent; color: var(--ink-faint); cursor: pointer;
+}
+.ctrl-btn:hover { border-color: var(--orange); color: var(--orange); }
+.role-badge {
+  width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--ff-mono); font-size: 8px; font-weight: 700; color: var(--white); flex-shrink: 0;
+}
+.badge-t { background: var(--orange); } .badge-s { background: var(--ink-mid); }
+.badge-h { background: var(--ink); }    .badge-b { background: var(--ink-faint); }
+.bg-group { display: flex; gap: 4px; align-items: center; }
+.bg-type-btn {
+  font-family: var(--ff-mono); font-size: 9px; padding: 4px 8px;
+  border: 1px solid var(--paper-dimmer); background: transparent; color: var(--ink-faint); cursor: pointer;
+}
+.bg-type-btn.active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+.color-swatch { width: 22px; height: 22px; border: 1.5px solid var(--paper-dimmer); position: relative; overflow: hidden; cursor: pointer; }
+.color-swatch input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.bg-img-input { display: none; }
+.bg-img-label { font-family: var(--ff-mono); font-size: 9px; padding: 4px 8px; border: 1px solid var(--paper-dimmer); color: var(--ink-faint); cursor: pointer; }
+
+/* ── Textarea expand ──────────────────────────────────────────────── */
+.ctrl-textarea {
+  resize: none; overflow: hidden; height: 26px; line-height: 1.4;
+  transition: height 180ms ease; vertical-align: top; font-family: inherit;
+  white-space: nowrap;
+}
+.ctrl-textarea:focus { height: 72px; overflow-y: auto; white-space: normal; }
+
+/* ── Footer ───────────────────────────────────────────────────────── */
+.site-footer {
+  padding: 14px 32px; display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--paper-dimmer); background: var(--paper); flex-shrink: 0;
+}
+.footer-l, .footer-r {
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.footer-link { color: var(--ink-faint); text-decoration: underline; }
+.footer-link:hover { color: var(--orange); }
+
+/* ── Preview ─────────────────────────────────────────────────────── */
+#preview-canvas { padding: 32px; background: var(--paper); }
+.preview-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 3px; max-width: 1400px; margin: 0 auto;
+}
+.preview-card {
+  --card-bg: var(--white);
+  background: var(--card-bg); border: 1px solid var(--paper-dimmer);
+  position: relative; overflow: hidden; cursor: default;
+  transition: box-shadow 120ms; aspect-ratio: 1 / 1.414;
+}
+.preview-card:hover { box-shadow: 0 0 0 2px var(--orange); }
+.preview-tag {
+  position: absolute; top: 12px; left: 12px; z-index: 10;
+  font-family: var(--ff-mono); font-size: 9px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  background: var(--ink); color: var(--white); padding: 3px 8px;
+}
+.preview-dl {
+  position: absolute; top: 12px; right: 12px; z-index: 10;
+  display: flex; gap: 4px; opacity: 0; transition: opacity 120ms;
+}
+.preview-card:hover .preview-dl { opacity: 1; }
+.dl-btn {
+  font-family: var(--ff-mono); font-size: 9px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  background: rgba(26,28,28,0.88); color: var(--white);
+  border: none; padding: 4px 8px; cursor: pointer; transition: background 100ms;
+}
+.dl-btn:hover { background: var(--orange); }
+
+/* ═════════════════════════════════════════
+   PRINT PRESET LAYOUTS
+   ═════════════════════════════════════════ */
+
+/* 01 — Newspaper Front */
+.layout-newspaper { background: var(--card-bg, var(--newsprint)); height: 100%; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.np-top { padding: 16px 24px 0; }
+.np-masthead { text-align: center; padding: 10px 0; border-bottom: 3px solid var(--ink); border-top: 3px solid var(--ink); }
+.np-name { font-size: 42px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: var(--ink); }
+.np-rules { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--ink); margin-top: 4px; }
+.np-meta { font-family: var(--ff-mono); font-size: 8px; color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase; }
+.np-body { padding: 14px 24px; flex: 1; display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
+.np-lead-hl { font-size: 32px; font-weight: 800; line-height: 1.0; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 10px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; }
+.np-deck { font-size: 14px; font-weight: 600; color: var(--ink-mid); line-height: 1.4; margin-bottom: 10px; }
+.np-text { font-size: 11px; line-height: 1.65; color: var(--ink); column-count: 2; column-gap: 14px; }
+.np-sidebar {}
+.np-sidebar-item { border-top: 1px solid var(--ink-faint); padding: 10px 0; }
+.np-sidebar-hed { font-size: 14px; font-weight: 800; letter-spacing: -0.01em; color: var(--ink); line-height: 1.2; margin-bottom: 4px; }
+.np-sidebar-txt { font-size: 10px; line-height: 1.55; color: var(--ink-mid); }
+.np-footer { padding: 8px 24px; border-top: 1px solid var(--ink-faint); display: flex; justify-content: space-between; }
+.np-footer-txt { font-family: var(--ff-mono); font-size: 8px; color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* 02 — Magazine editorial */
+.layout-magazine { height: 100%; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.mag-splash { background: var(--ink); padding: 52px 36px 40px; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
+.mag-issue-tag {
+  align-self: flex-start; border: 1px solid rgba(255,255,255,0.2);
+  padding: 3px 10px; margin-bottom: 28px;
+  font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: rgba(255,255,255,0.4);
+}
+.mag-title { font-size: clamp(36px,5vw,60px); font-weight: 800; line-height: 0.92; letter-spacing: -0.04em; color: var(--white); margin-bottom: 18px; }
+.mag-title em { color: var(--orange); font-style: normal; }
+.mag-deck { font-size: 15px; line-height: 1.5; color: rgba(255,255,255,0.55); max-width: 38ch; }
+.mag-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 36px; border-top: 1px solid var(--paper-dimmer);
+}
+.mag-footer-info { font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+.mag-price { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; }
+
+/* 03 — Dense body / book */
+.layout-book { background: var(--card-bg, var(--white)); padding: 36px 32px; height: 100%; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.book-chapter { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); padding-bottom: 10px; border-bottom: 1px solid var(--paper-dimmer); margin-bottom: 16px; }
+.book-title { font-size: 26px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 20px; }
+.book-drop { float: left; font-size: 64px; line-height: 0.78; font-weight: 800; color: var(--orange); margin-right: 6px; margin-top: 8px; }
+.book-body { font-size: 12px; line-height: 1.8; color: var(--ink); column-count: 2; column-gap: 22px; text-align: justify; }
+.book-folio { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--paper-dimmer); display: flex; justify-content: space-between; font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* 04 — Book / Monograph cover */
+.layout-cover { background: var(--ink); height: 100%; min-height: 0; padding: 36px 32px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+.cover-grid { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px); background-size: 28px 28px; }
+.cover-pub { position: relative; z-index: 1; font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+.cover-main { position: relative; z-index: 1; }
+.cover-rule { width: 40px; height: 3px; background: var(--orange); margin-bottom: 22px; }
+.cover-title { font-size: clamp(30px,5vw,56px); font-weight: 800; line-height: 0.92; letter-spacing: -0.04em; color: var(--white); margin-bottom: 14px; }
+.cover-author { font-size: 14px; color: rgba(255,255,255,0.45); }
+.cover-author strong { color: var(--white); }
+.cover-spine { position: absolute; right: 0; top: 0; bottom: 0; width: 34px; background: var(--orange); display: flex; align-items: center; justify-content: center; z-index: 2; }
+.cover-spine-txt { font-size: 9px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--white); transform: rotate(90deg); white-space: nowrap; }
+
+/* 05 — Dense specification (pharma/legal) */
+.layout-spec { background: var(--card-bg, var(--white)); padding: 28px 24px; height: 100%; min-height: 0; overflow: hidden; }
+.spec-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 2px solid var(--ink); }
+.spec-brand { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
+.spec-generic { font-size: 12px; color: var(--ink-faint); margin-top: 3px; }
+.spec-rx { font-size: 28px; font-weight: 800; color: var(--orange); font-style: italic; }
+.spec-section { margin-bottom: 14px; }
+.spec-section-title { font-family: var(--ff-mono); font-size: 9px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--orange); margin-bottom: 6px; }
+.spec-body { font-size: 11px; line-height: 1.65; color: var(--ink); }
+.spec-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.spec-table th { font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); text-align: left; border-bottom: 1px solid var(--paper-dimmer); padding: 4px 0; }
+.spec-table td { font-size: 11px; color: var(--ink); padding: 5px 0; border-bottom: 1px solid var(--paper-dimmer); }
+.spec-warning { border: 1.5px solid var(--ink); padding: 10px 14px; margin-top: 14px; display: flex; gap: 10px; align-items: flex-start; }
+.spec-warn-icon { font-size: 15px; flex-shrink: 0; }
+.spec-warn-text { font-size: 11px; line-height: 1.5; font-weight: 600; color: var(--ink); }
+
+/* 06 — Corporate stationery */
+.layout-letter { background: var(--card-bg, var(--white)); height: 100%; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.letter-head { background: var(--ink); padding: 18px 28px; display: flex; justify-content: space-between; align-items: center; }
+.letter-co { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; color: var(--white); }
+.letter-tagline { font-family: var(--ff-mono); font-size: 9px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+.letter-contact { text-align: right; font-family: var(--ff-mono); font-size: 9px; color: rgba(255,255,255,0.4); letter-spacing: 0.04em; line-height: 1.6; }
+.letter-stripe { height: 3px; background: var(--orange); }
+.letter-body { padding: 28px 28px; flex: 1; }
+.letter-ref { font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 18px; }
+.letter-salutation { font-size: 14px; color: var(--ink); margin-bottom: 14px; }
+.letter-text { font-size: 13px; line-height: 1.75; color: var(--ink); max-width: 60ch; }
+.letter-sig { margin-top: 24px; }
+.letter-sig-name { font-size: 16px; font-weight: 700; color: var(--ink); }
+.letter-sig-title { font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.letter-footer { padding: 12px 28px; border-top: 1px solid var(--paper-dimmer); display: flex; justify-content: space-between; font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; }
+
+@media (max-width: 900px) { .preview-grid { grid-template-columns: 1fr; } .preview-card { aspect-ratio: 1 / 1.414; } }
+@media (max-width: 700px) { #preview-canvas { padding: 16px; } .ctrl-row { flex-wrap: nowrap; overflow-x: auto; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="nav-row">
+    <a class="wordmark" href="index.html">Typori</a>
+    <div class="page-tabs">
+      <a class="ptab" href="display.html">Web Display</a>
+      <a class="ptab active" href="print.html">Print</a>
+    </div>
+    <div class="nav-right">
+      <label class="ctrl-label" style="margin:0;font-family:var(--ff-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)" for="page-size">Page</label>
+      <select class="ctrl-select-sm" id="page-size">
+        <option value="1/1.414" selected>A4 Portrait</option>
+        <option value="1.414/1">A4 Landscape</option>
+        <option value="1/1.294">Letter Portrait</option>
+        <option value="1.294/1">Letter Landscape</option>
+        <option value="0.707/1">A5 Portrait</option>
+        <option value="1/1.545">Tabloid</option>
+        <option value="1/1">Square</option>
+      </select>
+      <button class="export-btn primary" id="export-png-all">Export PNG</button>
+      <button class="export-btn" id="export-pdf-all">Print / PDF</button>
+    </div>
+  </div>
+
+  <!-- Text row -->
+  <div class="ctrl-row">
+    <div class="ctrl-cell">
+      <span class="ctrl-label">Title</span>
+      <input type="text" class="ctrl-input wide" id="text-title" value="The Typori Chronicle">
+    </div>
+    <div class="ctrl-cell">
+      <span class="ctrl-label">Subtitle</span>
+      <input type="text" class="ctrl-input med" id="text-sub" value="Typography reshapes modern identity">
+    </div>
+    <div class="ctrl-cell">
+      <span class="ctrl-label">Heading</span>
+      <input type="text" class="ctrl-input sm" id="text-heading" value="New Script Support">
+    </div>
+    <div class="ctrl-cell grow">
+      <span class="ctrl-label">Body</span>
+      <textarea class="ctrl-input ctrl-textarea" id="text-body" style="width:100%;min-width:140px">The principles of Swiss typography continue to influence publishing worldwide.</textarea>
+    </div>
+    <!-- Background -->
+    <div class="ctrl-cell">
+      <span class="ctrl-label">BG</span>
+      <div class="bg-group">
+        <button class="bg-type-btn active" data-bg="color">Color</button>
+        <button class="bg-type-btn" data-bg="gradient">Grad</button>
+        <button class="bg-type-btn" data-bg="image">Image</button>
+        <div class="color-swatch" title="Pick color">
+          <input type="color" id="bg-color" value="#f7f5f3">
+        </div>
+        <input type="file" class="bg-img-input" id="bg-image" accept="image/*">
+        <label class="bg-img-label" for="bg-image" id="bg-img-label" style="display:none">Upload</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Font roles row -->
+  <div class="ctrl-row">
+    <div class="ctrl-cell">
+      <span class="role-badge badge-t">T</span>
+      <select class="ctrl-select" id="src-title" data-role="title">
+        <option value="loaded">Loaded</option><option value="system">System</option><option value="google">Google</option>
+      </select>
+      <select class="ctrl-select" id="fnt-title" style="max-width:160px"></select>
+      <input type="text" class="ctrl-input sm" id="gf-title" placeholder="Font name" style="display:none">
+      <button class="ctrl-btn" id="load-gf-title" data-role="title" style="display:none">Load</button>
+    </div>
+    <div class="ctrl-cell">
+      <span class="role-badge badge-s">S</span>
+      <select class="ctrl-select" id="src-sub" data-role="sub">
+        <option value="loaded">Loaded</option><option value="system">System</option><option value="google">Google</option>
+      </select>
+      <select class="ctrl-select" id="fnt-sub" style="max-width:160px"></select>
+      <input type="text" class="ctrl-input sm" id="gf-sub" placeholder="Font name" style="display:none">
+      <button class="ctrl-btn" id="load-gf-sub" data-role="sub" style="display:none">Load</button>
+    </div>
+    <div class="ctrl-cell">
+      <span class="role-badge badge-h">H</span>
+      <select class="ctrl-select" id="src-heading" data-role="heading">
+        <option value="loaded">Loaded</option><option value="system">System</option><option value="google">Google</option>
+      </select>
+      <select class="ctrl-select" id="fnt-heading" style="max-width:160px"></select>
+      <input type="text" class="ctrl-input sm" id="gf-heading" placeholder="Font name" style="display:none">
+      <button class="ctrl-btn" id="load-gf-heading" data-role="heading" style="display:none">Load</button>
+    </div>
+    <div class="ctrl-cell grow">
+      <span class="role-badge badge-b">B</span>
+      <select class="ctrl-select" id="src-body" data-role="body">
+        <option value="loaded">Loaded</option><option value="system">System</option><option value="google">Google</option>
+      </select>
+      <select class="ctrl-select" id="fnt-body" style="max-width:160px"></select>
+      <input type="text" class="ctrl-input sm" id="gf-body" placeholder="Font name" style="display:none">
+      <button class="ctrl-btn" id="load-gf-body" data-role="body" style="display:none">Load</button>
+    </div>
+  </div>
+</header>
+
+<div id="preview-canvas">
+<div class="preview-grid" id="preview-grid">
+
+  <!-- 01 — Newspaper -->
+  <div class="preview-card" id="card-1">
+    <span class="preview-tag">01 — Newspaper</span>
+    <div class="preview-dl">
+      <button class="dl-btn" data-card="1" data-fmt="png">PNG</button>
+      <button class="dl-btn" data-card="1" data-fmt="print">Print/PDF</button>
+    </div>
+    <div class="layout-newspaper">
+      <div class="np-top">
+        <div class="np-masthead">
+          <div class="np-name typo-title text-title">The Typori Chronicle</div>
+        </div>
+        <div class="np-rules">
+          <span class="np-meta typo-body">Monday, June 2026</span>
+          <span class="np-meta typo-body">Final Edition</span>
+          <span class="np-meta typo-body">₹5.00</span>
+        </div>
+      </div>
+      <div class="np-body">
+        <div>
+          <div class="np-lead-hl typo-title text-title">Typography Reshapes Modern Identity</div>
+          <div class="np-deck typo-sub text-sub">Typography reshapes modern identity — the return of typographic authenticity in premium publishing.</div>
+          <div class="np-text typo-body text-body">The principles of Swiss typography continue to influence digital design systems worldwide. Grid, hierarchy, function — three tenets that outlasted every trend that followed. As screens multiply and attention shortens, the foundational rules of the Bauhaus school have never been more relevant to practising designers and typesetters.</div>
+        </div>
+        <div class="np-sidebar">
+          <div class="np-sidebar-item">
+            <div class="np-sidebar-hed typo-heading text-heading">New Script Support</div>
+            <div class="np-sidebar-txt typo-body">Odia, Devanagari, and Tamil scripts enter the global type conversation.</div>
+          </div>
+          <div class="np-sidebar-item">
+            <div class="np-sidebar-hed typo-heading text-heading">New Script Support</div>
+            <div class="np-sidebar-txt typo-body">A single variable font file now replaces entire type families in professional workflows.</div>
+          </div>
+        </div>
+      </div>
+      <div class="np-footer">
+        <span class="np-footer-txt typo-body">The Typori Chronicle</span>
+        <span class="np-footer-txt typo-body">Page A1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 — Magazine -->
+  <div class="preview-card" id="card-2">
+    <span class="preview-tag">02 — Magazine Editorial</span>
+    <div class="preview-dl">
+      <button class="dl-btn" data-card="2" data-fmt="png">PNG</button>
+      <button class="dl-btn" data-card="2" data-fmt="print">Print/PDF</button>
+    </div>
+    <div class="layout-magazine">
+      <div class="mag-splash">
+        <div class="mag-issue-tag typo-sub text-sub">Issue 24 &nbsp;·&nbsp; Typography Special</div>
+        <h2 class="mag-title typo-title">The Typori <em>Chronicle</em></h2>
+        <p class="mag-deck typo-body text-body">The principles of Swiss typography continue to influence publishing worldwide.</p>
+      </div>
+      <div class="mag-footer">
+        <div>
+          <div class="mag-footer-info typo-sub text-sub">June 2026</div>
+          <div class="mag-footer-info typo-body">International Edition</div>
+        </div>
+        <div class="mag-price typo-title">$12.99</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 — Dense body / book -->
+  <div class="preview-card" id="card-3">
+    <span class="preview-tag">03 — Book / Dense Body</span>
+    <div class="preview-dl">
+      <button class="dl-btn" data-card="3" data-fmt="png">PNG</button>
+      <button class="dl-btn" data-card="3" data-fmt="print">Print/PDF</button>
+    </div>
+    <div class="layout-book">
+      <div class="book-chapter typo-sub text-sub">Chapter IV &nbsp;·&nbsp; The International Style</div>
+      <div class="book-title typo-title text-title">The Typori Chronicle</div>
+      <div class="book-body typo-body">
+        <span class="book-drop typo-title">T</span>he principles of Swiss typography continue to influence digital design systems worldwide. Grid, hierarchy, function — three tenets that outlasted every trend that followed. As screens multiply and attention shortens, the foundational rules of the Bauhaus school have never been more relevant. The careful study of letterforms reveals much about the cultural moment in which they were drawn. A typeface carries the memory of its making, the tools of its time, and the hand of its designer. Typography reshapes modern identity with every composition. Precision in typesetting remains an act of care for the reader.
+      </div>
+      <div class="book-folio">
+        <span class="typo-body text-title">The Typori Chronicle</span>
+        <span class="typo-body">88</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 — Cover -->
+  <div class="preview-card" id="card-4">
+    <span class="preview-tag">04 — Book / Monograph Cover</span>
+    <div class="preview-dl">
+      <button class="dl-btn" data-card="4" data-fmt="png">PNG</button>
+      <button class="dl-btn" data-card="4" data-fmt="print">Print/PDF</button>
+    </div>
+    <div class="layout-cover">
+      <div class="cover-grid"></div>
+      <div class="cover-pub typo-sub text-sub">Typori Press &nbsp;·&nbsp; 2026</div>
+      <div class="cover-main">
+        <div class="cover-rule"></div>
+        <div class="cover-title typo-title text-title">The Typori Chronicle</div>
+        <div class="cover-author typo-body">A monograph by <strong>Das &amp; Müller</strong></div>
+      </div>
+      <div class="cover-spine">
+        <div class="cover-spine-txt typo-sub">Typori Press</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 — Dense spec / pharmaceutical -->
+  <div class="preview-card" id="card-5">
+    <span class="preview-tag">05 — Dense Specification</span>
+    <div class="preview-dl">
+      <button class="dl-btn" data-card="5" data-fmt="png">PNG</button>
+      <button class="dl-btn" data-card="5" data-fmt="print">Print/PDF</button>
+    </div>
+    <div class="layout-spec">
+      <div class="spec-header">
+        <div>
+          <div class="spec-brand typo-title text-title">The Typori Chronicle</div>
+          <div class="spec-generic typo-body text-sub">Typography reshapes modern identity</div>
+        </div>
+        <div class="spec-rx typo-title">Rx</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-section-title typo-sub">Indications</div>
+        <div class="spec-body typo-body text-body">The principles of Swiss typography continue to influence digital design worldwide. For use in controlled typographic environments. Supports all script systems including non-Latin and bidirectional text.</div>
+      </div>
+      <div class="spec-section">
+        <div class="spec-section-title typo-sub">Dosage &amp; Parameters</div>
+        <table class="spec-table">
+          <tr>
+            <th class="typo-heading">Parameter</th>
+            <th class="typo-heading">Recommended</th>
+            <th class="typo-heading">Unit</th>
+          </tr>
+          <tr><td class="typo-body">Body size</td><td class="typo-body">10–12</td><td class="typo-body">pt</td></tr>
+          <tr><td class="typo-body">Leading</td><td class="typo-body">14–16</td><td class="typo-body">pt</td></tr>
+          <tr><td class="typo-body">Measure</td><td class="typo-body">55–65</td><td class="typo-body">ch</td></tr>
+          <tr><td class="typo-body">Tracking</td><td class="typo-body">0–10</td><td class="typo-body">u/em</td></tr>
+        </table>
+      </div>
+      <div class="spec-warning">
+        <span class="spec-warn-icon">&#9651;</span>
+        <span class="spec-warn-text typo-body text-body">Handle all typefaces with appropriate optical care. Typography reshapes modern identity.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 — Corporate stationery -->
+  <div class="preview-card" id="card-6">
+    <span class="preview-tag">06 — Corporate Stationery</span>
+    <div class="preview-dl">
+      <button class="dl-btn" data-card="6" data-fmt="png">PNG</button>
+      <button class="dl-btn" data-card="6" data-fmt="print">Print/PDF</button>
+    </div>
+    <div class="layout-letter">
+      <div class="letter-head">
+        <div>
+          <div class="letter-co typo-title text-title">The Typori Chronicle</div>
+          <div class="letter-tagline typo-sub">Type. Precision. Clarity.</div>
+        </div>
+        <div class="letter-contact typo-body">hello@typori.press<br>+91 80 0000 0000<br>Bengaluru, India</div>
+      </div>
+      <div class="letter-stripe"></div>
+      <div class="letter-body">
+        <div class="letter-ref typo-heading text-heading">1 June 2026 &nbsp;·&nbsp; Ref: TYP-2026-001</div>
+        <div class="letter-salutation typo-body">Dear Type Designer,</div>
+        <div class="letter-text typo-body text-body">The principles of Swiss typography continue to influence publishing worldwide. This letter demonstrates how your chosen typeface performs at correspondence scale — where legibility, colour, and rhythm are tested in the most unforgiving context. The quick brown fox jumps over the lazy dog. Sphinx of black quartz, judge my vow.</div>
+        <div class="letter-sig">
+          <div class="letter-sig-name typo-title text-title" style="font-size:16px">Typori Labs</div>
+          <div class="letter-sig-title typo-sub">Creative Director, Type Division</div>
+        </div>
+      </div>
+      <div class="letter-footer">
+        <span class="typo-body text-sub">Typori Press &nbsp;·&nbsp; Bengaluru</span>
+        <span class="typo-body">Page 1 of 1</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<footer class="site-footer">
+  <span class="footer-l">&copy; 2026 Subhashish Panigrahi / O Foundation</span>
+  <span class="footer-r">v.0.0.2-beta &nbsp;&middot;&nbsp; <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener" class="footer-link">MIT License</a></span>
+</footer>
+
+<script>
+// ── IndexedDB ─────────────────────────────────────────────────────
+const DB_NAME = 'typori-fonts', DB_VER = 1, STORE = 'fonts';
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE, { keyPath: 'name' });
+    req.onsuccess = e => res(e.target.result);
+    req.onerror = e => rej(e.target.error);
+  });
+}
+async function getFonts() {
+  const db = await openDB();
+  const tx = db.transaction(STORE, 'readonly');
+  const req = tx.objectStore(STORE).getAll();
+  return new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = rej; });
+}
+
+const SYSTEM_FONTS = ['system-ui','Arial','Arial Narrow','Georgia','Times New Roman','Courier New','Helvetica','Verdana','Trebuchet MS','Impact','Palatino','Garamond','Optima','Futura','Gill Sans','Calibri','Cambria','Consolas'];
+
+const fontRoles = { title:'', sub:'', heading:'', body:'' };
+const _defaults = {
+  title: 'The Typori Chronicle', sub: 'Typography reshapes modern identity',
+  heading: 'New Script Support', body: 'The principles of Swiss typography continue to influence publishing worldwide.',
+};
+const textContent = Object.assign({}, _defaults,
+  JSON.parse(localStorage.getItem('typori-texts') || '{}'));
+let loadedFonts = [];
+const googleFontsLoaded = new Set(JSON.parse(localStorage.getItem('typori-gfonts') || '[]'));
+
+function setFontRole(role, family) {
+  fontRoles[role] = family;
+  const value = family ? `'${family}', system-ui, sans-serif` : 'system-ui, sans-serif';
+  document.documentElement.style.setProperty(`--font-${role}`, value);
+  const saved = {};
+  for (const r of ['title','sub','heading','body'])
+    saved[r] = { family: fontRoles[r], src: document.getElementById(`src-${r}`)?.value || 'loaded' };
+  localStorage.setItem('typori-roles', JSON.stringify(saved));
+}
+
+function applyTexts() {
+  for (const role of ['title','sub','heading','body']) {
+    document.querySelectorAll(`.text-${role}`).forEach(el => { el.textContent = textContent[role]; });
+  }
+}
+
+function populateFontSelect(sel, src) {
+  sel.innerHTML = '';
+  if (src === 'loaded') {
+    sel.innerHTML = loadedFonts.length
+      ? loadedFonts.map(f => `<option value="${f.name.replace(/[^a-zA-Z0-9]/g,'-')}">${f.name}</option>`).join('')
+      : '<option value="">— load fonts on landing page —</option>';
+  } else if (src === 'system') {
+    sel.innerHTML = SYSTEM_FONTS.map(f => `<option value="${f}">${f}</option>`).join('');
+  } else {
+    const gf = [...googleFontsLoaded];
+    sel.innerHTML = gf.length
+      ? gf.map(n => `<option value="${n}">${n}</option>`).join('')
+      : '<option value="">— type a font name below —</option>';
+  }
+}
+
+function setupRoleControl(role) {
+  const srcSel = document.getElementById(`src-${role}`);
+  const fntSel = document.getElementById(`fnt-${role}`);
+  const gfInput = document.getElementById(`gf-${role}`);
+  const loadBtn = document.getElementById(`load-gf-${role}`);
+
+  const update = (src) => {
+    gfInput.style.display = src === 'google' ? '' : 'none';
+    loadBtn.style.display = src === 'google' ? '' : 'none';
+    populateFontSelect(fntSel, src);
+    if (fntSel.value) setFontRole(role, fntSel.value);
+  };
+
+  srcSel.onchange = () => update(srcSel.value);
+  fntSel.onchange = () => setFontRole(role, fntSel.value);
+
+  loadBtn.onclick = () => {
+    const name = gfInput.value.trim(); if (!name) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}:wght@100;200;300;400;500;600;700;800;900&display=swap`;
+    document.head.appendChild(link);
+    link.onload = () => {
+      googleFontsLoaded.add(name);
+      localStorage.setItem('typori-gfonts', JSON.stringify([...googleFontsLoaded]));
+      populateFontSelect(fntSel, 'google');
+      fntSel.value = name; setFontRole(role, name);
+    };
+  };
+
+  const saved = JSON.parse(localStorage.getItem('typori-roles') || '{}');
+  if (saved[role]) {
+    srcSel.value = saved[role].src || 'loaded';
+    update(srcSel.value);
+    if (saved[role].family && fntSel.querySelector(`option[value="${saved[role].family}"]`)) {
+      fntSel.value = saved[role].family; setFontRole(role, saved[role].family);
+    }
+  } else { update('loaded'); }
+}
+
+// Text inputs
+function saveTexts() { localStorage.setItem('typori-texts', JSON.stringify(textContent)); }
+for (const role of ['title','sub','heading','body']) {
+  document.getElementById(`text-${role}`).oninput = e => {
+    textContent[role] = e.target.value;
+    document.querySelectorAll(`.text-${role}`).forEach(el => { el.textContent = e.target.value; });
+    saveTexts();
+  };
+}
+
+// Page size
+document.getElementById('page-size').onchange = e => {
+  const ratio = e.target.value || '1 / 1.414';
+  document.querySelectorAll('.preview-card').forEach(card => { card.style.aspectRatio = ratio; });
+};
+
+// Background (applies to each card)
+let bgType = 'color';
+const cards = () => document.querySelectorAll('.preview-card');
+document.querySelectorAll('.bg-type-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.bg-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); bgType = btn.dataset.bg;
+    document.getElementById('bg-img-label').style.display = bgType === 'image' ? '' : 'none';
+    document.querySelector('.color-swatch').style.display = bgType === 'image' ? 'none' : '';
+    applyBackground();
+  };
+});
+document.getElementById('bg-color').oninput = applyBackground;
+document.getElementById('bg-image').onchange = e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    cards().forEach(card => {
+      card.style.backgroundImage = `url('${ev.target.result}')`;
+      card.style.backgroundSize = 'cover'; card.style.backgroundPosition = 'center';
+      card.style.backgroundRepeat = 'no-repeat';
+    });
+  };
+  reader.readAsDataURL(file);
+};
+function applyBackground() {
+  if (bgType === 'color') {
+    const c = document.getElementById('bg-color').value;
+    cards().forEach(card => { card.style.setProperty('--card-bg', c); card.style.backgroundImage = ''; });
+  } else if (bgType === 'gradient') {
+    cards().forEach(card => {
+      card.style.removeProperty('--card-bg');
+      card.style.background = 'linear-gradient(135deg, #f3edda 0%, #e8cfa0 50%, #d4a870 100%)';
+    });
+  }
+}
+
+// Export
+function uint8ToB64(bytes) {
+  let s = ''; const chunk = 8192;
+  for (let i = 0; i < bytes.length; i += chunk)
+    s += String.fromCharCode(...bytes.subarray(i, Math.min(i+chunk, bytes.length)));
+  return btoa(s);
+}
+function collectPageCSS() {
+  let css = '';
+  for (const sheet of document.styleSheets) {
+    try { for (const rule of sheet.cssRules) css += rule.cssText + '\n'; } catch(e) {}
+  }
+  return css;
+}
+
+async function exportPNG(cardId) {
+  const card = document.getElementById(`card-${cardId}`); if (!card) return;
+  const inner = card.querySelector('[class^="layout-"],[class*=" layout-"]') || card;
+  const canvas = await html2canvas(inner, { scale: 2, useCORS: true });
+  const a = document.createElement('a'); a.download = `typori-print-${cardId}.png`;
+  a.href = canvas.toDataURL('image/png'); a.click();
+}
+
+async function exportPrint(cardId) {
+  const card = document.getElementById(`card-${cardId}`); if (!card) return;
+  const fonts = await getFonts();
+  let fontCSS = '';
+  for (const f of fonts) {
+    if (f.buffer) {
+      const slug = f.name.replace(/[^a-zA-Z0-9]/g, '-');
+      const b64 = uint8ToB64(new Uint8Array(f.buffer));
+      fontCSS += `@font-face{font-family:'${slug}';src:url('data:font/truetype;base64,${b64}')}\n`;
+    }
+  }
+  const gLinks = [...googleFontsLoaded].map(n =>
+    `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(n)}:wght@100;400;700;900&display=swap">`
+  ).join('');
+  const cs = getComputedStyle(document.documentElement);
+  const varCSS = ['title','sub','heading','body'].map(r =>
+    `--font-${r}: ${cs.getPropertyValue('--font-'+r) || 'system-ui'};`
+  ).join('');
+  const rootCSS = `:root{--orange:#d34000;--ink:#1a1c1c;--ink-mid:#5c4037;--ink-faint:#916f65;--paper:#f7f5f3;--paper-dim:#edeae7;--paper-dimmer:#e2dfdc;--white:#fefcfa;--newsprint:#f3edda;--ff-sans:'Hanken Grotesk',system-ui,sans-serif;--ff-mono:'JetBrains Mono',monospace;${varCSS}}`;
+  const pageCSS = collectPageCSS();
+  const inner = card.querySelector('[class^="layout-"],[class*=" layout-"]') || card;
+  const win = window.open('','_blank','width=1000,height=800');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    ${gLinks}
+    <style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    ${fontCSS}${rootCSS}${pageCSS}
+    body{margin:0;background:white}
+    .preview-tag,.preview-dl,.site-header{display:none!important}
+    @media print{@page{size:auto;margin:0}body{margin:0}}
+    </style></head><body>
+    ${inner.outerHTML}
+    <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),600))<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+document.getElementById('preview-grid').addEventListener('click', e => {
+  const btn = e.target.closest('.dl-btn'); if (!btn) return;
+  btn.dataset.fmt === 'png' ? exportPNG(btn.dataset.card) : exportPrint(btn.dataset.card);
+});
+document.getElementById('export-png-all').onclick = async () => { for (let i=1;i<=6;i++) await exportPNG(i); };
+document.getElementById('export-pdf-all').onclick = async () => { for (let i=1;i<=6;i++) await exportPrint(i); };
+
+// Init
+async function init() {
+  loadedFonts = await getFonts();
+  for (const f of loadedFonts) {
+    if (!f.isGoogle && f.buffer) {
+      const slug = f.name.replace(/[^a-zA-Z0-9]/g, '-');
+      try { const ff = new FontFace(slug, f.buffer); await ff.load(); document.fonts.add(ff); } catch(e) {}
+    }
+  }
+  for (const name of googleFontsLoaded) {
+    if (!document.querySelector(`link[href*="${encodeURIComponent(name)}"]`)) {
+      const link = document.createElement('link'); link.rel = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}:wght@100;400;700;900&display=swap`;
+      document.head.appendChild(link);
+    }
+  }
+  for (const role of ['title','sub','heading','body']) setupRoleControl(role);
+  for (const role of ['title','sub','heading','body']) {
+    const el = document.getElementById(`text-${role}`);
+    if (el) el.value = textContent[role];
+  }
+  applyTexts();
+}
+init();
+</script>
+</body>
+</html>

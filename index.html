@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typori — Test Your Typeface in Context</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --orange:       #d34000;
+    --orange-dark:  #a93100;
+    --ink:          #1a1c1c;
+    --ink-mid:      #5c4037;
+    --ink-faint:    #916f65;
+    --paper:        #f7f5f3;
+    --paper-dim:    #edeae7;
+    --paper-dimmer: #e2dfdc;
+    --white:        #fefcfa;
+    --ff-sans:      'Hanken Grotesk', system-ui, sans-serif;
+    --ff-mono:      'JetBrains Mono', monospace;
+  }
+
+  html { background: var(--paper); color: var(--ink); font-family: var(--ff-sans); }
+  body { min-height: 100vh; display: flex; flex-direction: column; }
+
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 40px; height: 52px;
+    background: var(--paper); border-bottom: 1px solid var(--paper-dimmer);
+  }
+  .wordmark {
+    font-size: 13px; font-weight: 800; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink); text-decoration: none;
+  }
+  .nav-right { display: flex; gap: 24px; align-items: center; }
+  .nav-link {
+    font-family: var(--ff-mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint);
+    text-decoration: none; transition: color 150ms;
+  }
+  .nav-link:hover { color: var(--ink); }
+
+  .hero {
+    display: grid; grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 52px);
+    border-bottom: 1px solid var(--paper-dimmer);
+  }
+  .hero-left {
+    padding: 80px 40px; display: flex; flex-direction: column; justify-content: space-between;
+    border-right: 1px solid var(--paper-dimmer);
+  }
+  .hero-right { padding: 80px 40px; display: flex; flex-direction: column; background: var(--white); }
+
+  .hero-label {
+    font-family: var(--ff-mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--orange); margin-bottom: 32px;
+  }
+  .hero-title {
+    font-size: clamp(56px, 8vw, 108px); font-weight: 800; line-height: 0.92;
+    letter-spacing: -0.04em; color: var(--ink); margin-bottom: 40px;
+  }
+  .hero-title em { font-style: normal; color: var(--orange); }
+  .hero-desc { font-size: 18px; line-height: 1.6; color: var(--ink-mid); max-width: 42ch; margin-bottom: 56px; }
+  .hero-meta { display: flex; gap: 32px; flex-wrap: wrap; }
+  .hero-meta-item {
+    font-family: var(--ff-mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint);
+  }
+  .hero-meta-item strong {
+    display: block; font-family: var(--ff-sans); font-size: 22px;
+    font-weight: 800; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 2px;
+  }
+
+  /* ── Font tabs ─────────────────────────────────────── */
+  .section-label {
+    font-family: var(--ff-mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint);
+    margin-bottom: 14px; display: block;
+  }
+  .font-tabs { display: flex; gap: 0; margin-bottom: 0; border: 1px solid var(--paper-dimmer); }
+  .font-tab {
+    font-family: var(--ff-mono); font-size: 10px; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 9px 16px; border: none; background: transparent;
+    color: var(--ink-faint); cursor: pointer; border-right: 1px solid var(--paper-dimmer);
+    transition: all 100ms; flex: 1;
+  }
+  .font-tab:last-child { border-right: none; }
+  .font-tab.active { background: var(--ink); color: var(--white); }
+  .font-tab:not(.active):hover { background: var(--paper-dim); color: var(--ink); }
+
+  .tab-panel { display: none; border: 1px solid var(--paper-dimmer); border-top: none; padding: 20px; }
+  .tab-panel.visible { display: block; }
+
+  /* File upload */
+  .upload-zone {
+    border: 1.5px dashed var(--paper-dimmer); padding: 36px 24px; text-align: center;
+    cursor: pointer; transition: border-color 150ms, background 150ms; background: var(--paper);
+  }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--orange); background: #fff9f7; }
+  .upload-zone input { display: none; }
+  .upload-zone-title { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 6px; margin-top: 8px; }
+  .upload-zone-sub { font-family: var(--ff-mono); font-size: 11px; color: var(--ink-faint); letter-spacing: 0.04em; }
+  .upload-zone-sub span { color: var(--orange); text-decoration: underline; cursor: pointer; }
+  .upload-icon svg { display: block; margin: 0 auto; }
+
+  /* Device fonts */
+  .device-access-btn {
+    width: 100%; padding: 12px; background: var(--ink); color: var(--white);
+    border: none; font-family: var(--ff-sans); font-size: 14px; font-weight: 600;
+    letter-spacing: 0.02em; cursor: pointer; transition: background 150ms;
+  }
+  .device-access-btn:hover { background: var(--orange); }
+  .device-status {
+    font-family: var(--ff-mono); font-size: 11px; color: var(--ink-faint);
+    letter-spacing: 0.04em; margin-top: 12px;
+  }
+  .device-list {
+    margin-top: 16px; max-height: 200px; overflow-y: auto;
+    border: 1px solid var(--paper-dimmer);
+  }
+  .device-family {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 12px; border-bottom: 1px solid var(--paper-dimmer); cursor: pointer;
+    transition: background 100ms;
+  }
+  .device-family:last-child { border-bottom: none; }
+  .device-family:hover { background: var(--paper-dim); }
+  .device-family-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .device-family-count { font-family: var(--ff-mono); font-size: 10px; color: var(--ink-faint); letter-spacing: 0.04em; }
+  .device-family-add {
+    font-family: var(--ff-mono); font-size: 10px; color: var(--orange);
+    text-transform: uppercase; letter-spacing: 0.06em; background: none; border: none; cursor: pointer;
+  }
+  .device-search {
+    width: 100%; padding: 9px 12px; border: none; border-bottom: 1px solid var(--paper-dimmer);
+    font-family: var(--ff-sans); font-size: 13px; background: var(--paper-dim);
+    outline: none; color: var(--ink);
+  }
+  .device-search:focus { background: var(--white); }
+
+  /* Google fonts browser */
+  .gf-controls { display: flex; gap: 8px; margin-bottom: 12px; }
+  .gf-search {
+    flex: 1; padding: 8px 12px; border: 1px solid var(--paper-dimmer);
+    font-family: var(--ff-sans); font-size: 13px; background: var(--paper);
+    outline: none; color: var(--ink);
+  }
+  .gf-search:focus { border-color: var(--orange); }
+  .gf-filter {
+    padding: 8px 10px; border: 1px solid var(--paper-dimmer);
+    font-family: var(--ff-mono); font-size: 11px; background: var(--paper);
+    color: var(--ink); cursor: pointer; outline: none;
+    -webkit-appearance: none; appearance: none; padding-right: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23916f65'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 8px center;
+  }
+  .gf-chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 200px; overflow-y: auto; }
+  .gf-chip {
+    font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.04em;
+    padding: 5px 12px; border: 1px solid var(--paper-dimmer); background: var(--paper);
+    cursor: pointer; transition: all 100ms; color: var(--ink);
+  }
+  .gf-chip:hover { border-color: var(--orange); color: var(--orange); }
+  .gf-chip.loaded { background: var(--ink); color: var(--white); border-color: var(--ink); }
+
+  /* Loaded fonts list */
+  .loaded-fonts { margin-top: 24px; }
+  .loaded-fonts-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+  }
+  .clear-btn {
+    font-family: var(--ff-mono); font-size: 10px; color: var(--ink-faint);
+    background: none; border: none; cursor: pointer; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .clear-btn:hover { color: var(--orange); }
+  .font-pill {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border: 1px solid var(--paper-dimmer); background: var(--white); margin-bottom: 4px;
+  }
+  .font-pill-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .font-pill-meta { font-family: var(--ff-mono); font-size: 10px; color: var(--ink-faint); letter-spacing: 0.04em; }
+  .font-pill-remove { background: none; border: none; cursor: pointer; color: var(--ink-faint); font-size: 16px; padding: 0 4px; }
+  .font-pill-remove:hover { color: var(--orange); }
+  .no-fonts-note { font-family: var(--ff-mono); font-size: 11px; color: var(--ink-faint); letter-spacing: 0.04em; padding: 12px 0; }
+
+  /* Mode selection */
+  .mode-section { margin-top: 40px; }
+  .mode-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--paper-dimmer); border: 1px solid var(--paper-dimmer); margin-bottom: 12px;
+  }
+  .mode-card {
+    background: var(--white); padding: 24px 20px 28px; cursor: pointer;
+    border: none; text-align: left; transition: background 150ms;
+    display: flex; flex-direction: column;
+  }
+  .mode-card:hover { background: #fff9f7; }
+  .mode-card.selected { background: var(--orange); color: var(--white); }
+  .mode-card-icon { font-size: 18px; margin-bottom: 14px; display: block; }
+  .mode-card-title {
+    font-size: 14px; font-weight: 800; letter-spacing: -0.01em; text-transform: uppercase;
+    color: var(--ink); margin-bottom: 6px; line-height: 1.1;
+  }
+  .mode-card.selected .mode-card-title { color: var(--white); }
+  .mode-card-desc { font-size: 12px; color: var(--ink-mid); line-height: 1.5; }
+  .mode-card.selected .mode-card-desc { color: rgba(255,255,255,0.75); }
+
+  .mode-go {
+    width: 100%; background: var(--ink); color: var(--white); border: none;
+    padding: 14px 24px; font-family: var(--ff-sans); font-size: 14px;
+    font-weight: 700; letter-spacing: 0.02em; cursor: pointer;
+    transition: background 150ms; text-transform: uppercase;
+  }
+  .mode-go:hover { background: var(--orange); }
+  .mode-go:disabled { background: var(--paper-dimmer); color: var(--ink-faint); cursor: not-allowed; }
+
+  /* Features */
+  .features { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--paper-dimmer); }
+  .feature { padding: 36px 40px; border-right: 1px solid var(--paper-dimmer); }
+  .feature:last-child { border-right: none; }
+  .feature-num { font-family: var(--ff-mono); font-size: 11px; color: var(--orange); letter-spacing: 0.06em; margin-bottom: 16px; display: block; }
+  .feature-title { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  .feature-desc { font-size: 13px; color: var(--ink-mid); line-height: 1.6; }
+
+  footer {
+    margin-top: auto; padding: 18px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid var(--paper-dimmer);
+  }
+  .footer-copy {
+    font-family: var(--ff-mono); font-size: 10px; color: var(--ink-faint);
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-left { border-right: none; border-bottom: 1px solid var(--paper-dimmer); }
+    .features { grid-template-columns: 1fr 1fr; }
+    .feature:nth-child(2) { border-right: none; }
+    nav { padding: 0 20px; }
+    .hero-left, .hero-right { padding: 48px 20px; }
+  }
+  @media (max-width: 540px) {
+    .features { grid-template-columns: 1fr; }
+    .feature { border-right: none; border-bottom: 1px solid var(--paper-dimmer); }
+    .mode-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="wordmark" href="index.html">Typori</a>
+  <div class="nav-right">
+    <a class="nav-link" href="display.html">Web Display</a>
+    <a class="nav-link" href="print.html">Print</a>
+  </div>
+</nav>
+
+<main>
+  <section class="hero">
+    <div class="hero-left">
+      <div>
+        <p class="hero-label">Professional Font Testing</p>
+        <h1 class="hero-title">Test your<br>typeface<br><em>in context.</em></h1>
+        <p class="hero-desc">Load any font from your device. Input text in any script. See it rendered inside realistic web and print layouts — then export what you see.</p>
+      </div>
+      <div class="hero-meta">
+        <div class="hero-meta-item"><strong>UTF-8</strong>Any script, any direction</div>
+        <div class="hero-meta-item"><strong>Local</strong>No upload, no server</div>
+        <div class="hero-meta-item"><strong>Export</strong>PNG / PDF</div>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <span class="section-label">Step 1 — Load your fonts</span>
+
+      <div class="font-tabs">
+        <button class="font-tab active" data-tab="file">File Upload</button>
+        <button class="font-tab" data-tab="device">Device Fonts</button>
+        <button class="font-tab" data-tab="google">Google Fonts</button>
+      </div>
+
+      <!-- File upload -->
+      <div class="tab-panel visible" id="tab-file">
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" id="font-input" accept=".ttf,.otf,.woff,.woff2" multiple>
+          <div class="upload-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <rect x="5" y="22" width="22" height="2" fill="#d34000"/>
+              <rect x="15" y="7" width="2" height="13" fill="#1a1c1c"/>
+              <path d="M10 14L16 8L22 14" stroke="#1a1c1c" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+          <p class="upload-zone-title">Drop fonts here</p>
+          <p class="upload-zone-sub">.ttf .otf .woff .woff2 &nbsp;·&nbsp; <span onclick="document.getElementById('font-input').click()">browse files</span></p>
+        </div>
+      </div>
+
+      <!-- Device fonts -->
+      <div class="tab-panel" id="tab-device">
+        <button class="device-access-btn" id="device-access-btn">Browse installed fonts</button>
+        <p class="device-status" id="device-status">Requires Chrome or Edge. Will ask for permission once.</p>
+        <div id="device-font-panel" style="display:none">
+          <div class="device-list">
+            <input type="text" class="device-search" id="device-search" placeholder="Search families…">
+            <div id="device-list-inner"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Google Fonts browser -->
+      <div class="tab-panel" id="tab-google">
+        <div class="gf-controls">
+          <input type="text" class="gf-search" id="gf-search" placeholder="Search Google Fonts…">
+          <select class="gf-filter" id="gf-script">
+            <option value="">All scripts</option>
+            <option value="Latin">Latin</option>
+            <option value="Devanagari">Devanagari</option>
+            <option value="Odia">Odia</option>
+            <option value="Bengali">Bengali</option>
+            <option value="Tamil">Tamil</option>
+            <option value="Telugu">Telugu</option>
+            <option value="Kannada">Kannada</option>
+            <option value="Malayalam">Malayalam</option>
+            <option value="Arabic">Arabic</option>
+            <option value="Hebrew">Hebrew</option>
+            <option value="CJK">CJK</option>
+            <option value="Greek">Greek</option>
+            <option value="Cyrillic">Cyrillic</option>
+            <option value="Ethiopic">Ethiopic</option>
+          </select>
+        </div>
+        <div class="gf-chips" id="gf-chips"></div>
+        <p style="font-family:var(--ff-mono);font-size:10px;color:var(--ink-faint);margin-top:12px;letter-spacing:0.04em;">Click a font to load it. Loaded fonts appear in the list below.</p>
+      </div>
+
+      <!-- Shared: loaded fonts list -->
+      <div class="loaded-fonts">
+        <div class="loaded-fonts-header">
+          <span class="section-label" style="margin:0">Loaded fonts</span>
+          <button class="clear-btn" id="clear-all-btn">Clear all</button>
+        </div>
+        <div id="font-list"><p class="no-fonts-note">No fonts loaded yet.</p></div>
+      </div>
+
+      <div class="mode-section">
+        <span class="section-label">Step 2 — Choose testing mode</span>
+        <div class="mode-grid">
+          <button class="mode-card" data-mode="display">
+            <span class="mode-card-icon">&#9633;</span>
+            <span class="mode-card-title">Web Display</span>
+            <span class="mode-card-desc">Headers, body text, UI components, responsive contexts</span>
+          </button>
+          <button class="mode-card" data-mode="print">
+            <span class="mode-card-icon">&#9632;</span>
+            <span class="mode-card-title">Print</span>
+            <span class="mode-card-desc">Newspaper, magazine, dense text, cover, stationery</span>
+          </button>
+        </div>
+        <button class="mode-go" id="mode-go-btn" disabled>Select a mode to continue</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="feature">
+      <span class="feature-num">01</span>
+      <h3 class="feature-title">Script-agnostic</h3>
+      <p class="feature-desc">Works with any script: Latin, Devanagari, Odia, Arabic, CJK. If the font renders it, Typori shows it.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-num">02</span>
+      <h3 class="feature-title">Four type roles</h3>
+      <p class="feature-desc">Assign different fonts to Title, Subtitle, Heading, and Body independently. Mix loaded, system, and Google fonts.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-num">03</span>
+      <h3 class="feature-title">Background control</h3>
+      <p class="feature-desc">Solid color, gradient, or uploaded image as background — center-aligned automatically.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-num">04</span>
+      <h3 class="feature-title">Export ready</h3>
+      <p class="feature-desc">PNG via canvas; PDF via browser print with font embedded. No jsPDF, no kerning loss.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span class="footer-copy">Typori — Precision Proofing for Type</span>
+  <span class="footer-copy">Script-agnostic &middot; UTF-8 &middot; GitHub Pages</span>
+</footer>
+
+<script>
+// ── Google Fonts curated list ────────────────────────────────────
+const GF_FONTS = [
+  { n:'Hanken Grotesk',       s:['Latin'] },
+  { n:'Source Sans 3',        s:['Latin','Devanagari'] },
+  { n:'Barlow',               s:['Latin'] },
+  { n:'Work Sans',            s:['Latin'] },
+  { n:'Raleway',              s:['Latin'] },
+  { n:'Mulish',               s:['Latin'] },
+  { n:'Libre Franklin',       s:['Latin'] },
+  { n:'Source Serif 4',       s:['Latin','Devanagari'] },
+  { n:'Merriweather',         s:['Latin'] },
+  { n:'Libre Baskerville',    s:['Latin'] },
+  { n:'EB Garamond',          s:['Latin','Cyrillic','Greek'] },
+  { n:'Lora',                 s:['Latin','Cyrillic'] },
+  { n:'JetBrains Mono',       s:['Latin'] },
+  { n:'Fira Code',            s:['Latin'] },
+  { n:'Inconsolata',          s:['Latin'] },
+  { n:'Noto Serif Devanagari',s:['Devanagari'] },
+  { n:'Noto Sans Devanagari', s:['Devanagari'] },
+  { n:'Hind',                 s:['Devanagari','Latin'] },
+  { n:'Poppins',              s:['Devanagari','Latin'] },
+  { n:'Mukta',                s:['Devanagari','Latin'] },
+  { n:'Tiro Devanagari',      s:['Devanagari'] },
+  { n:'Baloo 2',              s:['Devanagari','Latin'] },
+  { n:'Noto Serif Odia',      s:['Odia'] },
+  { n:'Noto Sans Odia',       s:['Odia'] },
+  { n:'Baloo Bhaina 2',       s:['Odia','Latin'] },
+  { n:'Noto Serif Bengali',   s:['Bengali'] },
+  { n:'Noto Sans Bengali',    s:['Bengali'] },
+  { n:'Hind Siliguri',        s:['Bengali','Latin'] },
+  { n:'Noto Serif Tamil',     s:['Tamil'] },
+  { n:'Noto Sans Tamil',      s:['Tamil'] },
+  { n:'Hind Madurai',         s:['Tamil','Latin'] },
+  { n:'Noto Serif Telugu',    s:['Telugu'] },
+  { n:'Noto Sans Telugu',     s:['Telugu'] },
+  { n:'Hind Guntur',          s:['Telugu','Latin'] },
+  { n:'Noto Serif Kannada',   s:['Kannada'] },
+  { n:'Noto Sans Kannada',    s:['Kannada'] },
+  { n:'Noto Serif Malayalam', s:['Malayalam'] },
+  { n:'Noto Sans Malayalam',  s:['Malayalam'] },
+  { n:'Noto Naskh Arabic',    s:['Arabic'] },
+  { n:'Cairo',                s:['Arabic','Latin'] },
+  { n:'Amiri',                s:['Arabic','Latin'] },
+  { n:'Scheherazade New',     s:['Arabic'] },
+  { n:'Noto Serif Hebrew',    s:['Hebrew'] },
+  { n:'Frank Ruhl Libre',     s:['Hebrew','Latin'] },
+  { n:'Noto Sans SC',         s:['CJK'] },
+  { n:'Noto Serif SC',        s:['CJK'] },
+  { n:'Noto Sans JP',         s:['CJK'] },
+  { n:'Noto Serif JP',        s:['CJK'] },
+  { n:'Noto Sans KR',         s:['CJK'] },
+  { n:'Noto Serif Greek',     s:['Greek','Latin'] },
+  { n:'GFS Didot',            s:['Greek','Latin'] },
+  { n:'PT Serif',             s:['Cyrillic','Latin'] },
+  { n:'Noto Serif',           s:['Cyrillic','Latin'] },
+  { n:'Noto Serif Ethiopic',  s:['Ethiopic'] },
+];
+
+// ── IndexedDB ────────────────────────────────────────────────────
+const DB_NAME = 'typori-fonts', DB_VER = 1, STORE = 'fonts';
+
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE, { keyPath: 'name' });
+    req.onsuccess = e => res(e.target.result);
+    req.onerror = e => rej(e.target.error);
+  });
+}
+async function saveFontToDB(name, buffer, size) {
+  const db = await openDB();
+  const tx = db.transaction(STORE, 'readwrite');
+  tx.objectStore(STORE).put({ name, buffer, size });
+  return new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+}
+async function getFontsFromDB() {
+  const db = await openDB();
+  const tx = db.transaction(STORE, 'readonly');
+  const req = tx.objectStore(STORE).getAll();
+  return new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = rej; });
+}
+async function removeFontFromDB(name) {
+  const db = await openDB();
+  const tx = db.transaction(STORE, 'readwrite');
+  tx.objectStore(STORE).delete(name);
+  return new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+}
+async function clearAllFontsDB() {
+  const db = await openDB();
+  const tx = db.transaction(STORE, 'readwrite');
+  tx.objectStore(STORE).clear();
+  return new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+}
+
+async function registerFontFace(name, buffer) {
+  const slug = name.replace(/[^a-zA-Z0-9]/g, '-');
+  const ff = new FontFace(slug, buffer);
+  await ff.load();
+  document.fonts.add(ff);
+}
+
+// ── State ────────────────────────────────────────────────────────
+let loadedFonts = [];
+let selectedMode = null;
+let deviceFamilies = new Map();
+
+function formatSize(b) {
+  return b < 1048576 ? Math.round(b/1024)+'KB' : (b/1048576).toFixed(1)+'MB';
+}
+
+function renderFontList() {
+  const el = document.getElementById('font-list');
+  if (!loadedFonts.length) { el.innerHTML = '<p class="no-fonts-note">No fonts loaded yet.</p>'; return; }
+  el.innerHTML = loadedFonts.map(f => `
+    <div class="font-pill">
+      <span class="font-pill-name">${f.name}</span>
+      <span class="font-pill-meta">${formatSize(f.size)}</span>
+      <button class="font-pill-remove" data-name="${f.name}" title="Remove">&#215;</button>
+    </div>`).join('');
+  el.querySelectorAll('.font-pill-remove').forEach(btn => {
+    btn.onclick = async () => {
+      const nm = btn.dataset.name;
+      await removeFontFromDB(nm);
+      loadedFonts = loadedFonts.filter(f => f.name !== nm);
+      renderFontList();
+    };
+  });
+}
+
+async function processFiles(files) {
+  for (const file of files) {
+    if (!/\.(ttf|otf|woff|woff2)$/i.test(file.name)) continue;
+    const buffer = await file.arrayBuffer();
+    await saveFontToDB(file.name, buffer, file.size);
+    await registerFontFace(file.name, buffer).catch(() => {});
+    if (!loadedFonts.find(f => f.name === file.name))
+      loadedFonts.push({ name: file.name, size: file.size });
+  }
+  renderFontList();
+}
+
+// ── Google Fonts ─────────────────────────────────────────────────
+const gfLoaded = new Set(JSON.parse(localStorage.getItem('typori-gfonts') || '[]'));
+
+function renderGFChips(filter = '', script = '') {
+  const chips = document.getElementById('gf-chips');
+  const filtered = GF_FONTS.filter(f => {
+    const nameMatch = !filter || f.n.toLowerCase().includes(filter.toLowerCase());
+    const scriptMatch = !script || f.s.includes(script);
+    return nameMatch && scriptMatch;
+  });
+  chips.innerHTML = filtered.map(f => `
+    <button class="gf-chip ${gfLoaded.has(f.n) ? 'loaded' : ''}" data-font="${f.n}">${f.n}</button>
+  `).join('');
+  chips.querySelectorAll('.gf-chip').forEach(chip => {
+    chip.onclick = () => loadGoogleFont(chip.dataset.font, chip);
+  });
+}
+
+function loadGoogleFont(name, chipEl) {
+  if (gfLoaded.has(name)) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}:wght@100;200;300;400;500;600;700;800;900&display=swap`;
+  document.head.appendChild(link);
+  link.onload = () => {
+    gfLoaded.add(name);
+    localStorage.setItem('typori-gfonts', JSON.stringify([...gfLoaded]));
+    if (chipEl) chipEl.classList.add('loaded');
+    // Add to loaded fonts list (Google fonts don't have binary, use size=0 marker)
+    const display = `${name} (Google)`;
+    if (!loadedFonts.find(f => f.name === display)) {
+      loadedFonts.push({ name: display, size: 0, isGoogle: true, googleName: name });
+    }
+    renderFontList();
+  };
+}
+
+// ── Device Fonts (Local Font Access API) ─────────────────────────
+document.getElementById('device-access-btn').onclick = async () => {
+  const btn = document.getElementById('device-access-btn');
+  const status = document.getElementById('device-status');
+  if (!('queryLocalFonts' in window)) {
+    status.textContent = 'Local font access is only available in Chrome or Edge 102+.';
+    return;
+  }
+  btn.textContent = 'Requesting access…'; btn.disabled = true;
+  try {
+    const fonts = await window.queryLocalFonts();
+    deviceFamilies = new Map();
+    for (const f of fonts) {
+      if (!deviceFamilies.has(f.family)) deviceFamilies.set(f.family, []);
+      deviceFamilies.get(f.family).push(f);
+    }
+    status.textContent = `${deviceFamilies.size} font families found.`;
+    btn.textContent = `${deviceFamilies.size} families found`;
+    document.getElementById('device-font-panel').style.display = 'block';
+    renderDeviceList('');
+  } catch (err) {
+    status.textContent = err.name === 'NotAllowedError'
+      ? 'Access denied. Allow font access in browser settings and try again.'
+      : 'Could not access fonts: ' + err.message;
+    btn.textContent = 'Try again'; btn.disabled = false;
+  }
+};
+
+document.getElementById('device-search').oninput = e => renderDeviceList(e.target.value);
+
+function renderDeviceList(query) {
+  const el = document.getElementById('device-list-inner');
+  const families = [...deviceFamilies.keys()]
+    .filter(n => !query || n.toLowerCase().includes(query.toLowerCase()))
+    .sort();
+  el.innerHTML = families.slice(0, 200).map(family => {
+    const variants = deviceFamilies.get(family);
+    return `<div class="device-family">
+      <span class="device-family-name">${family}</span>
+      <span class="device-family-count">${variants.length} style${variants.length > 1 ? 's' : ''}</span>
+      <button class="device-family-add" data-family="${family}">Add</button>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.device-family-add').forEach(btn => {
+    btn.onclick = async () => {
+      const family = btn.dataset.family;
+      const variants = deviceFamilies.get(family);
+      btn.textContent = '…'; btn.disabled = true;
+      try {
+        for (const variant of variants.slice(0, 4)) {
+          const blob = await variant.blob();
+          const buffer = await blob.arrayBuffer();
+          const name = variant.fullName || family;
+          await saveFontToDB(name, buffer, blob.size);
+          await registerFontFace(name, buffer).catch(() => {});
+          if (!loadedFonts.find(f => f.name === name))
+            loadedFonts.push({ name, size: blob.size });
+        }
+        renderFontList();
+        btn.textContent = '✓'; btn.style.color = 'var(--ink)';
+      } catch(e) {
+        btn.textContent = '✗'; btn.style.color = 'var(--orange)'; btn.disabled = false;
+      }
+    };
+  });
+}
+
+// ── Font tab switching ────────────────────────────────────────────
+document.querySelectorAll('.font-tab').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('.font-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('visible'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('visible');
+    if (tab.dataset.tab === 'google') renderGFChips();
+  };
+});
+document.getElementById('gf-search').oninput = e =>
+  renderGFChips(e.target.value, document.getElementById('gf-script').value);
+document.getElementById('gf-script').onchange = e =>
+  renderGFChips(document.getElementById('gf-search').value, e.target.value);
+
+// ── File upload events ────────────────────────────────────────────
+document.getElementById('font-input').onchange = e => {
+  processFiles(Array.from(e.target.files)); e.target.value = '';
+};
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); processFiles(Array.from(e.dataTransfer.files)); });
+zone.addEventListener('click', e => { if (e.target.tagName !== 'SPAN') document.getElementById('font-input').click(); });
+document.getElementById('clear-all-btn').onclick = async () => {
+  await clearAllFontsDB(); loadedFonts = []; renderFontList();
+};
+
+// ── Mode selection ────────────────────────────────────────────────
+document.querySelectorAll('.mode-card').forEach(card => {
+  card.onclick = () => {
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedMode = card.dataset.mode;
+    const btn = document.getElementById('mode-go-btn');
+    btn.disabled = false;
+    btn.textContent = selectedMode === 'display' ? 'Open Web Display Testing →' : 'Open Print Testing →';
+  };
+});
+document.getElementById('mode-go-btn').onclick = () => {
+  window.location.href = selectedMode === 'display' ? 'display.html' : 'print.html';
+};
+
+// ── Init ──────────────────────────────────────────────────────────
+async function init() {
+  loadedFonts = await getFontsFromDB();
+  for (const f of loadedFonts) {
+    if (!f.isGoogle) await registerFontFace(f.name, f.buffer).catch(() => {});
+  }
+  // Re-inject saved Google Fonts
+  for (const name of gfLoaded) {
+    if (!document.querySelector(`link[href*="${encodeURIComponent(name)}"]`)) loadGoogleFont(name, null);
+  }
+  renderFontList();
+}
+init();
+</script>
+</body>
+</html>

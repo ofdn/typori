@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typori — Web Display</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --orange: #d34000; --orange-dark: #a93100;
+  --ink: #1a1c1c; --ink-mid: #5c4037; --ink-faint: #916f65;
+  --paper: #f7f5f3; --paper-dim: #edeae7; --paper-dimmer: #e2dfdc;
+  --white: #fefcfa;
+  --ff-sans: 'Hanken Grotesk', system-ui, sans-serif;
+  --ff-mono: 'JetBrains Mono', monospace;
+  /* Type role fonts — overridden via JS */
+  --font-title:   'Hanken Grotesk', system-ui, sans-serif;
+  --font-sub:     'Hanken Grotesk', system-ui, sans-serif;
+  --font-heading: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-body:    'Hanken Grotesk', system-ui, sans-serif;
+}
+html { background: var(--paper); color: var(--ink); font-family: var(--ff-sans); }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Typo role classes */
+.typo-title   { font-family: var(--font-title); }
+.typo-sub     { font-family: var(--font-sub); }
+.typo-heading { font-family: var(--font-heading); }
+.typo-body    { font-family: var(--font-body); }
+
+/* ── Header (light, matching landing) ──────────────────────────── */
+.site-header {
+  position: sticky; top: 0; z-index: 200;
+  background: var(--paper); display: flex; flex-direction: column;
+  border-bottom: 2px solid var(--paper-dimmer);
+}
+.nav-row {
+  display: flex; align-items: center; padding: 0 32px; height: 52px;
+  border-bottom: 1px solid var(--paper-dimmer); gap: 0;
+}
+.wordmark {
+  font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink); text-decoration: none; margin-right: 28px;
+}
+.page-tabs { display: flex; gap: 0; }
+.ptab {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0 18px; height: 52px; display: flex; align-items: center;
+  color: var(--ink-faint); text-decoration: none; border-right: 1px solid var(--paper-dimmer);
+  border-left: 1px solid var(--paper-dimmer); margin-left: -1px; transition: color 100ms;
+}
+.ptab:hover { color: var(--ink); }
+.ptab.active { color: var(--ink); border-bottom: 2px solid var(--orange); }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.ctrl-select-sm {
+  background: var(--white); border: 1px solid var(--paper-dimmer); color: var(--ink);
+  font-family: var(--ff-mono); font-size: 10px; padding: 5px 22px 5px 8px; outline: none; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23916f65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 7px center;
+}
+.ctrl-select-sm:focus { border-color: var(--orange); }
+.export-btn {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 6px 12px; border: 1px solid var(--paper-dimmer);
+  background: transparent; color: var(--ink-faint); cursor: pointer; transition: all 100ms;
+}
+.export-btn:hover { border-color: var(--ink); color: var(--ink); }
+.export-btn.primary { background: var(--orange); border-color: var(--orange); color: var(--white); }
+.export-btn.primary:hover { background: var(--orange-dark); }
+
+/* ── Ctrl rows ──────────────────────────────────────────────────── */
+.ctrl-row {
+  display: flex; align-items: stretch; border-bottom: 1px solid var(--paper-dimmer);
+  background: var(--white); min-height: 40px; overflow-x: auto;
+}
+.ctrl-cell {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 12px; border-right: 1px solid var(--paper-dimmer); flex-shrink: 0;
+}
+.ctrl-cell.grow { flex: 1; }
+.ctrl-label {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-faint); white-space: nowrap;
+}
+.ctrl-input {
+  background: transparent; border: 1px solid transparent; color: var(--ink);
+  font-family: var(--ff-sans); font-size: 12px; padding: 4px 6px; outline: none;
+  min-width: 0;
+}
+.ctrl-input:focus { border-color: var(--paper-dimmer); background: var(--paper); }
+.ctrl-input.wide { width: 200px; }
+.ctrl-input.med  { width: 140px; }
+.ctrl-input.sm   { width: 90px; }
+.ctrl-select {
+  background: transparent; border: 1px solid var(--paper-dimmer); color: var(--ink);
+  font-family: var(--ff-mono); font-size: 10px; padding: 4px 20px 4px 6px; outline: none; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23916f65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 6px center;
+}
+.ctrl-select:focus { border-color: var(--orange); }
+.ctrl-btn {
+  font-family: var(--ff-mono); font-size: 10px; padding: 4px 10px;
+  border: 1px solid var(--paper-dimmer); background: transparent; color: var(--ink-faint);
+  cursor: pointer; white-space: nowrap;
+}
+.ctrl-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+/* Role badges */
+.role-badge {
+  width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--ff-mono); font-size: 8px; font-weight: 700; color: var(--white);
+  flex-shrink: 0; text-transform: uppercase;
+}
+.badge-t { background: var(--orange); }
+.badge-s { background: var(--ink-mid); }
+.badge-h { background: var(--ink); }
+.badge-b { background: var(--ink-faint); }
+
+/* BG controls */
+.bg-group { display: flex; gap: 4px; align-items: center; }
+.bg-type-btn {
+  font-family: var(--ff-mono); font-size: 9px; padding: 4px 8px;
+  border: 1px solid var(--paper-dimmer); background: transparent;
+  color: var(--ink-faint); cursor: pointer; transition: all 100ms;
+}
+.bg-type-btn.active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+.color-swatch {
+  width: 22px; height: 22px; border: 1.5px solid var(--paper-dimmer);
+  position: relative; overflow: hidden; cursor: pointer;
+}
+.color-swatch input {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.bg-img-input { display: none; }
+.bg-img-label {
+  font-family: var(--ff-mono); font-size: 9px; padding: 4px 8px;
+  border: 1px solid var(--paper-dimmer); color: var(--ink-faint); cursor: pointer;
+}
+
+/* ── Textarea expand ─────────────────────────────────────────────── */
+.ctrl-textarea {
+  resize: none; overflow: hidden; height: 26px; line-height: 1.4;
+  transition: height 180ms ease; vertical-align: top; font-family: inherit;
+  white-space: nowrap;
+}
+.ctrl-textarea:focus { height: 72px; overflow-y: auto; white-space: normal; }
+
+/* ── Footer ──────────────────────────────────────────────────────── */
+.site-footer {
+  padding: 14px 32px; display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--paper-dimmer); background: var(--paper); flex-shrink: 0;
+}
+.footer-l, .footer-r {
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.footer-link { color: var(--ink-faint); text-decoration: underline; }
+.footer-link:hover { color: var(--orange); }
+
+/* ── Preview canvas ──────────────────────────────────────────────── */
+#preview-canvas { padding: 32px; background: var(--paper); }
+.preview-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 3px; max-width: 1400px; margin: 0 auto;
+}
+.preview-card {
+  --card-bg: var(--white);
+  background: var(--card-bg); border: 1px solid var(--paper-dimmer);
+  position: relative; overflow: hidden; cursor: default;
+  transition: box-shadow 120ms; aspect-ratio: 1 / 1.35;
+}
+.preview-card:hover { box-shadow: 0 0 0 2px var(--orange); }
+
+.preview-tag {
+  position: absolute; top: 12px; left: 12px; z-index: 10;
+  font-family: var(--ff-mono); font-size: 9px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  background: var(--ink); color: var(--white); padding: 3px 8px;
+}
+.preview-dl {
+  position: absolute; top: 12px; right: 12px; z-index: 10;
+  display: flex; gap: 4px; opacity: 0; transition: opacity 120ms;
+}
+.preview-card:hover .preview-dl { opacity: 1; }
+.dl-btn {
+  font-family: var(--ff-mono); font-size: 9px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  background: rgba(26,28,28,0.88); color: var(--white);
+  border: none; padding: 4px 8px; cursor: pointer; transition: background 100ms;
+}
+.dl-btn:hover { background: var(--orange); }
+
+/* ═══════════════════════════════════════════
+   PRESET LAYOUT STYLES
+   ═══════════════════════════════════════════ */
+
+/* 01 — Editorial Hero */
+.layout-hero {
+  height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--card-bg, var(--white));
+}
+.hero-stripe { height: 5px; background: var(--orange); }
+.hero-body { padding: 52px 40px 40px; flex: 1; display: flex; flex-direction: column; }
+.hero-kicker {
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--orange); margin-bottom: 20px;
+}
+.hero-hl {
+  font-size: clamp(36px, 5vw, 62px); font-weight: 800; line-height: 0.94;
+  letter-spacing: -0.03em; color: var(--ink); margin-bottom: 22px;
+}
+.hero-deck {
+  font-size: 17px; line-height: 1.55; color: var(--ink-mid); max-width: 44ch; margin-bottom: 32px;
+}
+.hero-cta {
+  display: inline-block; background: var(--ink); color: var(--white);
+  padding: 13px 28px; font-size: 13px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.04em; border: none; cursor: default;
+}
+.hero-byline {
+  margin-top: auto; padding-top: 24px; border-top: 1px solid var(--paper-dimmer);
+  display: flex; gap: 20px;
+  font-family: var(--ff-mono); font-size: 10px; color: var(--ink-faint);
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+
+/* 02 — Long-form article */
+.layout-article {
+  height: 100%; min-height: 0; overflow: hidden;
+  background: var(--card-bg, var(--white)); padding: 48px 40px;
+  display: grid; grid-template-columns: 1fr 200px; gap: 32px; align-content: start;
+}
+.article-main {}
+.article-meta {
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-faint); margin-bottom: 14px;
+}
+.article-hl {
+  font-size: 34px; font-weight: 800; line-height: 1.06; letter-spacing: -0.02em;
+  color: var(--ink); margin-bottom: 10px;
+}
+.article-deck {
+  font-size: 17px; font-weight: 500; color: var(--ink-mid); line-height: 1.45; margin-bottom: 20px;
+}
+.article-rule { height: 2px; background: var(--ink); margin-bottom: 20px; }
+.article-body {
+  font-size: 15px; line-height: 1.72; color: var(--ink);
+  max-width: 60ch; column-count: 1;
+}
+.article-sidebar { border-left: 1px solid var(--paper-dimmer); padding-left: 20px; }
+.article-sidebar-label {
+  font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 14px; display: block;
+}
+.sidebar-item { padding: 12px 0; border-bottom: 1px solid var(--paper-dimmer); }
+.sidebar-item-hed { font-size: 13px; font-weight: 700; color: var(--ink); line-height: 1.2; margin-bottom: 4px; }
+.sidebar-item-txt { font-size: 11px; color: var(--ink-faint); line-height: 1.5; }
+
+/* 03 — Dark splash */
+.layout-dark {
+  height: 100%; min-height: 0; overflow: hidden;
+  background: var(--ink); display: flex; flex-direction: column; justify-content: space-between;
+  padding: 44px 40px;
+}
+.dark-eyebrow {
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--orange);
+  border: 1px solid rgba(211,64,0,0.4); display: inline-block; padding: 3px 10px; margin-bottom: 28px;
+}
+.dark-hl {
+  font-size: clamp(32px, 5vw, 52px); font-weight: 800; line-height: 0.96;
+  letter-spacing: -0.03em; color: var(--white); margin-bottom: 18px;
+}
+.dark-deck { font-size: 15px; line-height: 1.6; color: rgba(255,255,255,0.5); max-width: 40ch; }
+.dark-btn {
+  display: inline-block; border: 1px solid rgba(255,255,255,0.25); color: var(--white);
+  padding: 11px 22px; font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em; margin-top: 28px; align-self: flex-start;
+}
+.dark-stats { display: flex; gap: 36px; padding-top: 28px; border-top: 1px solid rgba(255,255,255,0.1); }
+.dark-stat-val {
+  font-size: 30px; font-weight: 800; color: var(--white); letter-spacing: -0.02em; display: block;
+}
+.dark-stat-label {
+  font-family: var(--ff-mono); font-size: 9px; color: rgba(255,255,255,0.4);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+
+/* 04 — Pricing */
+.layout-pricing {
+  height: 100%; min-height: 0; overflow: hidden;
+  background: var(--card-bg, var(--white)); padding: 44px 36px;
+  display: flex; flex-direction: column;
+}
+.pricing-plan {
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ink-faint); margin-bottom: 10px;
+}
+.pricing-price {
+  font-size: 68px; font-weight: 800; letter-spacing: -0.04em; color: var(--ink);
+  line-height: 1; margin-bottom: 4px;
+}
+.pricing-price sup { font-size: 28px; vertical-align: top; margin-top: 10px; }
+.pricing-period { font-size: 13px; color: var(--ink-faint); margin-bottom: 28px; }
+.pricing-rule { height: 1px; background: var(--paper-dimmer); margin-bottom: 22px; }
+.pricing-feat {
+  display: flex; align-items: baseline; gap: 10px; font-size: 14px;
+  color: var(--ink-mid); margin-bottom: 12px;
+}
+.pricing-check { color: var(--orange); font-weight: 800; flex-shrink: 0; }
+.pricing-cta {
+  margin-top: auto; padding-top: 24px;
+  background: var(--orange); color: var(--white); border: none;
+  width: 100%; padding: 14px; font-size: 13px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.04em; cursor: default;
+}
+
+/* 05 — App / Dashboard */
+.layout-app { height: 100%; min-height: 0; overflow: hidden; background: var(--card-bg, #f0eeeb); display: flex; flex-direction: column; }
+.app-nav {
+  background: var(--ink); display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 48px;
+}
+.app-brand { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--white); }
+.app-nav-links { display: flex; gap: 24px; }
+.app-nav-link { font-family: var(--ff-mono); font-size: 10px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.06em; }
+.app-body { padding: 32px 24px; flex: 1; }
+.app-greeting { font-size: 26px; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+.app-sub { font-size: 14px; color: var(--ink-faint); margin-bottom: 28px; }
+.app-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.app-card { background: var(--white); border: 1px solid var(--paper-dimmer); padding: 18px 16px; }
+.app-card.accent { border-top: 3px solid var(--orange); }
+.app-card-val { font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; }
+.app-card-label { font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+.app-section-hed { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
+.app-row {
+  display: flex; gap: 8px; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--paper-dimmer);
+  font-size: 13px; color: var(--ink-mid);
+}
+.app-row:first-child { border-top: 1px solid var(--paper-dimmer); }
+
+/* 06 — Mobile UI */
+.layout-mobile {
+  height: 100%; min-height: 0; overflow: hidden;
+  background: var(--card-bg, #e4e1dd); display: flex; align-items: center; justify-content: center; padding: 32px;
+}
+.phone-shell {
+  width: 200px; background: var(--white); border: 2px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+.phone-bar { background: var(--ink); height: 32px; display: flex; align-items: center; justify-content: center; }
+.phone-notch { width: 48px; height: 5px; background: rgba(255,255,255,0.15); }
+.phone-body { padding: 18px 16px; }
+.phone-kicker {
+  font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--orange); margin-bottom: 8px;
+}
+.phone-hl { font-size: 20px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 10px; }
+.phone-body-txt { font-size: 11px; line-height: 1.65; color: var(--ink-mid); margin-bottom: 16px; }
+.phone-btn {
+  background: var(--orange); color: var(--white); width: 100%; text-align: center;
+  padding: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.phone-nav {
+  display: flex; justify-content: space-around; padding: 10px 0;
+  border-top: 1px solid var(--paper-dimmer);
+}
+.phone-nav-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--paper-dimmer);
+}
+.phone-nav-dot.active { background: var(--orange); }
+
+@media (max-width: 900px) { .preview-grid { grid-template-columns: 1fr; } .preview-card { aspect-ratio: 1 / 1.35; } }
+@media (max-width: 700px) { #preview-canvas { padding: 16px; } .ctrl-row { flex-wrap: nowrap; overflow-x: auto; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <!-- Nav row -->
+  <div class="nav-row">
+    <a class="wordmark" href="index.html">Typori</a>
+    <div class="page-tabs">
+      <a class="ptab active" href="display.html">Web Display</a>
+      <a class="ptab" href="print.html">Print</a>
+    </div>
+    <div class="nav-right">
+      <label class="ctrl-label" for="page-size" style="margin:0">Canvas</label>
+      <select class="ctrl-select-sm" id="page-size">
+        <option value="1/1.35" selected>Portrait</option>
+        <option value="16/9">Desktop 16:9</option>
+        <option value="4/3">Tablet 4:3</option>
+        <option value="3/4">Tablet Tall</option>
+        <option value="9/16">Mobile</option>
+        <option value="1/1">Square</option>
+      </select>
+      <button class="export-btn primary" id="export-png-all">Export PNG</button>
+      <button class="export-btn" id="export-pdf-all">Print / PDF</button>
+    </div>
+  </div>
+
+  <!-- Text row -->
+  <div class="ctrl-row">
+    <div class="ctrl-cell">
+      <span class="ctrl-label">Title</span>
+      <input type="text" class="ctrl-input wide" id="text-title" value="Architecture of Type">
+    </div>
+    <div class="ctrl-cell">
+      <span class="ctrl-label">Subtitle</span>
+      <input type="text" class="ctrl-input med" id="text-sub" value="Modernism is not a style, but a search">
+    </div>
+    <div class="ctrl-cell">
+      <span class="ctrl-label">Heading</span>
+      <input type="text" class="ctrl-input sm" id="text-heading" value="Explore Now">
+    </div>
+    <div class="ctrl-cell grow">
+      <span class="ctrl-label">Body</span>
+      <textarea class="ctrl-input ctrl-textarea" id="text-body" style="width:100%;min-width:140px">The principles of Swiss typography continue to influence digital design.</textarea>
+    </div>
+    <!-- Background -->
+    <div class="ctrl-cell">
+      <span class="ctrl-label">BG</span>
+      <div class="bg-group">
+        <button class="bg-type-btn active" data-bg="color">Color</button>
+        <button class="bg-type-btn" data-bg="gradient">Grad</button>
+        <button class="bg-type-btn" data-bg="image">Image</button>
+        <div class="color-swatch" title="Pick color">
+          <input type="color" id="bg-color" value="#f7f5f3">
+        </div>
+        <input type="file" class="bg-img-input" id="bg-image" accept="image/*">
+        <label class="bg-img-label" for="bg-image" id="bg-img-label" style="display:none">Upload</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Font roles row -->
+  <div class="ctrl-row">
+    <!-- Title font -->
+    <div class="ctrl-cell">
+      <span class="role-badge badge-t">T</span>
+      <select class="ctrl-select" id="src-title" data-role="title">
+        <option value="loaded">Loaded</option>
+        <option value="system">System</option>
+        <option value="google">Google</option>
+      </select>
+      <select class="ctrl-select" id="fnt-title" data-role="title" style="max-width:160px"></select>
+      <input type="text" class="ctrl-input sm" id="gf-title" placeholder="Font name" style="display:none">
+      <button class="ctrl-btn" id="load-gf-title" data-role="title" style="display:none">Load</button>
+    </div>
+    <!-- Subtitle font -->
+    <div class="ctrl-cell">
+      <span class="role-badge badge-s">S</span>
+      <select class="ctrl-select" id="src-sub" data-role="sub">
+        <option value="loaded">Loaded</option>
+        <option value="system">System</option>
+        <option value="google">Google</option>
+      </select>
+      <select class="ctrl-select" id="fnt-sub" data-role="sub" style="max-width:160px"></select>
+      <input type="text" class="ctrl-input sm" id="gf-sub" placeholder="Font name" style="display:none">
+      <button class="ctrl-btn" id="load-gf-sub" data-role="sub" style="display:none">Load</button>
+    </div>
+    <!-- Heading font -->
+    <div class="ctrl-cell">
+      <span class="role-badge badge-h">H</span>
+      <select class="ctrl-select" id="src-heading" data-role="heading">
+        <option value="loaded">Loaded</option>
+        <option value="system">System</option>
+        <option value="google">Google</option>
+      </select>
+      <select class="ctrl-select" id="fnt-heading" data-role="heading" style="max-width:160px"></select>
+      <input type="text" class="ctrl-input sm" id="gf-heading" placeholder="Font name" style="display:none">
+      <button class="ctrl-btn" id="load-gf-heading" data-role="heading" style="display:none">Load</button>
+    </div>
+    <!-- Body font -->
+    <div class="ctrl-cell grow">
+      <span class="role-badge badge-b">B</span>
+      <select class="ctrl-select" id="src-body" data-role="body">
+        <option value="loaded">Loaded</option>
+        <option value="system">System</option>
+        <option value="google">Google</option>
+      </select>
+      <select class="ctrl-select" id="fnt-body" data-role="body" style="max-width:160px"></select>
+      <input type="text" class="ctrl-input sm" id="gf-body" placeholder="Font name" style="display:none">
+      <button class="ctrl-btn" id="load-gf-body" data-role="body" style="display:none">Load</button>
+    </div>
+  </div>
+</header>
+
+<div id="preview-canvas">
+<div class="preview-grid" id="preview-grid">
+
+  <!-- 01 — Editorial Hero -->
+  <div class="preview-card" id="card-1">
+    <span class="preview-tag">01 — Hero Header</span>
+    <div class="preview-dl">
+      <button class="dl-btn" data-card="1" data-fmt="png">PNG</button>
+      <button class="dl-btn" data-card="1" data-fmt="print">Print/PDF</button>
+    </div>
+    <div class="layout-hero">
+      <div class="hero-stripe"></div>
+      <div class="hero-body">
+        <p class="hero-kicker typo-sub text-sub">Feature Story</p>
+        <h1 class="hero-hl typo-title text-title">Architecture of Type</h1>
+        <p class="hero-deck typo-body text-body">The principles of Swiss typography continue to influence digital design systems worldwide.</p>
+        <button class="hero-cta typo-heading text-heading">Explore Article</button>
+        <div class="hero-byline">
+          <span class="typo-body">By Das &amp; Müller</span>
+          <span class="typo-body">June 2026 &nbsp;·&nbsp; 12 min read</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 — Long-form Article -->
+  <div class="preview-card" id="card-2">
+    <span class="preview-tag">02 — Article</span>
+    <div class="preview-dl">
+      <button class="dl-btn" data-card="2" data-fmt="png">PNG</button>
+      <button class="dl-btn" data-card="2" data-fmt="print">Print/PDF</button>
+    </div>
+    <div class="layout-article">
+      <div class="article-main">
+        <p class="article-meta typo-sub text-sub">Typography &nbsp;·&nbsp; June 2026</p>
+        <h2 class="article-hl typo-title text-title">Architecture of Type</h2>
+        <p class="article-deck typo-sub text-sub">Modernism is not a style, but a search for an objective visual language.</p>
+        <div class="article-rule"></div>
+        <p class="article-body typo-body text-body">The principles of Swiss typography continue to influence digital design systems worldwide. Grid, hierarchy, function — three tenets that outlasted every trend. As screens multiply and attention shortens, foundational rules have never been more relevant to practising designers.</p>
+      </div>
+      <div class="article-sidebar">
+        <span class="article-sidebar-label typo-heading">Also in this issue</span>
+        <div class="sidebar-item">
+          <p class="sidebar-item-hed typo-heading text-heading">Explore Now</p>
+          <p class="sidebar-item-txt typo-body">Variable font era transforms workflows across studios worldwide.</p>
+        </div>
+        <div class="sidebar-item">
+          <p class="sidebar-item-hed typo-heading text-heading">Explore Now</p>
+          <p class="sidebar-item-txt typo-body">Odia and Devanagari scripts enter the global type conversation.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 — Dark Feature -->
+  <div class="preview-card" id="card-3">
+    <span class="preview-tag">03 — Dark Feature</span>
+    <div class="preview-dl">
+      <button class="dl-btn" data-card="3" data-fmt="png">PNG</button>
+      <button class="dl-btn" data-card="3" data-fmt="print">Print/PDF</button>
+    </div>
+    <div class="layout-dark">
+      <div>
+        <p class="dark-eyebrow typo-sub text-sub">Feature</p>
+        <h2 class="dark-hl typo-title text-title">Architecture of Type</h2>
+        <p class="dark-deck typo-body text-body">Modernism is not a style, but a search for an objective visual language.</p>
+        <span class="dark-btn typo-heading text-heading">Explore Now</span>
+      </div>
+      <div class="dark-stats">
+        <div>
+          <span class="dark-stat-val typo-title">2,400</span>
+          <span class="dark-stat-label typo-body">Words</span>
+        </div>
+        <div>
+          <span class="dark-stat-val typo-title">12 min</span>
+          <span class="dark-stat-label typo-body">Read time</span>
+        </div>
+        <div>
+          <span class="dark-stat-val typo-title">84</span>
+          <span class="dark-stat-label typo-body">Comments</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 — Pricing -->
+  <div class="preview-card" id="card-4">
+    <span class="preview-tag">04 — Pricing</span>
+    <div class="preview-dl">
+      <button class="dl-btn" data-card="4" data-fmt="png">PNG</button>
+      <button class="dl-btn" data-card="4" data-fmt="print">Print/PDF</button>
+    </div>
+    <div class="layout-pricing">
+      <p class="pricing-plan typo-sub text-sub">Professional</p>
+      <div class="pricing-price typo-title"><sup>$</sup>49</div>
+      <p class="pricing-period typo-body text-body">per month, billed annually</p>
+      <div class="pricing-rule"></div>
+      <div class="pricing-feat"><span class="pricing-check">✓</span> <span class="typo-body">Unlimited font uploads</span></div>
+      <div class="pricing-feat"><span class="pricing-check">✓</span> <span class="typo-body">Export to PNG &amp; PDF</span></div>
+      <div class="pricing-feat"><span class="pricing-check">✓</span> <span class="typo-body">All script support</span></div>
+      <div class="pricing-feat"><span class="pricing-check">✓</span> <span class="typo-body">Priority optical guides</span></div>
+      <button class="pricing-cta typo-heading text-heading">Get Started</button>
+    </div>
+  </div>
+
+  <!-- 05 — App / Dashboard -->
+  <div class="preview-card" id="card-5">
+    <span class="preview-tag">05 — App / Dashboard</span>
+    <div class="preview-dl">
+      <button class="dl-btn" data-card="5" data-fmt="png">PNG</button>
+      <button class="dl-btn" data-card="5" data-fmt="print">Print/PDF</button>
+    </div>
+    <div class="layout-app">
+      <div class="app-nav">
+        <span class="app-brand typo-title">Architecture</span>
+        <div class="app-nav-links">
+          <span class="app-nav-link typo-body">Overview</span>
+          <span class="app-nav-link typo-body">Projects</span>
+          <span class="app-nav-link typo-body">Settings</span>
+        </div>
+      </div>
+      <div class="app-body">
+        <p class="app-greeting typo-title text-title">Architecture of Type</p>
+        <p class="app-sub typo-sub text-sub">Modernism is not a style, but a search.</p>
+        <div class="app-cards">
+          <div class="app-card accent">
+            <div class="app-card-val typo-title">1,240</div>
+            <div class="app-card-label typo-body">Sessions</div>
+          </div>
+          <div class="app-card">
+            <div class="app-card-val typo-title">98%</div>
+            <div class="app-card-label typo-body">Uptime</div>
+          </div>
+          <div class="app-card">
+            <div class="app-card-val typo-title">4.2s</div>
+            <div class="app-card-label typo-body">Avg. load</div>
+          </div>
+        </div>
+        <p class="app-section-hed typo-heading text-heading">Explore Now</p>
+        <div class="app-row"><span class="typo-body">Switzerland · 2026</span></div>
+        <div class="app-row"><span class="typo-body">Germany · 2025</span></div>
+        <div class="app-row"><span class="typo-body">India · 2024</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 — Mobile UI -->
+  <div class="preview-card" id="card-6">
+    <span class="preview-tag">06 — Mobile UI</span>
+    <div class="preview-dl">
+      <button class="dl-btn" data-card="6" data-fmt="png">PNG</button>
+      <button class="dl-btn" data-card="6" data-fmt="print">Print/PDF</button>
+    </div>
+    <div class="layout-mobile">
+      <div class="phone-shell">
+        <div class="phone-bar"><div class="phone-notch"></div></div>
+        <div class="phone-body">
+          <p class="phone-kicker typo-sub text-sub">Feature</p>
+          <div class="phone-hl typo-title text-title">Architecture of Type</div>
+          <div class="phone-body-txt typo-body text-body">Modernism is not a style, but a search for an objective visual language.</div>
+          <div class="phone-btn typo-heading text-heading">Explore Now</div>
+        </div>
+        <div class="phone-nav">
+          <div class="phone-nav-dot active"></div>
+          <div class="phone-nav-dot"></div>
+          <div class="phone-nav-dot"></div>
+          <div class="phone-nav-dot"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<footer class="site-footer">
+  <span class="footer-l">&copy; 2026 Subhashish Panigrahi / O Foundation</span>
+  <span class="footer-r">v.0.0.2-beta &nbsp;&middot;&nbsp; <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener" class="footer-link">MIT License</a></span>
+</footer>
+
+<script>
+// ── IndexedDB ────────────────────────────────────────────────────
+const DB_NAME = 'typori-fonts', DB_VER = 1, STORE = 'fonts';
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE, { keyPath: 'name' });
+    req.onsuccess = e => res(e.target.result);
+    req.onerror = e => rej(e.target.error);
+  });
+}
+async function getFonts() {
+  const db = await openDB();
+  const tx = db.transaction(STORE, 'readonly');
+  const req = tx.objectStore(STORE).getAll();
+  return new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = rej; });
+}
+
+// ── System fonts ─────────────────────────────────────────────────
+const SYSTEM_FONTS = [
+  'system-ui','Arial','Arial Narrow','Georgia','Times New Roman','Courier New',
+  'Helvetica','Verdana','Trebuchet MS','Impact','Comic Sans MS',
+  'Palatino','Garamond','Book Antiqua','Optima','Futura',
+  'Gill Sans','Calibri','Cambria','Consolas','Lucida Console',
+];
+
+// ── State ────────────────────────────────────────────────────────
+const fontRoles = { title:'', sub:'', heading:'', body:'' };
+const _defaults = {
+  title: 'Architecture of Type', sub: 'Modernism is not a style, but a search',
+  heading: 'Explore Now', body: 'The principles of Swiss typography continue to influence digital design.',
+};
+const textContent = Object.assign({}, _defaults,
+  JSON.parse(localStorage.getItem('typori-texts') || '{}'));
+let loadedFonts = [];
+const googleFontsLoaded = new Set(JSON.parse(localStorage.getItem('typori-gfonts') || '[]'));
+
+// ── Font application ─────────────────────────────────────────────
+function setFontRole(role, family) {
+  fontRoles[role] = family;
+  const value = family ? `'${family}', system-ui, sans-serif` : 'system-ui, sans-serif';
+  document.documentElement.style.setProperty(`--font-${role}`, value);
+  // Save roles
+  const saved = {};
+  for (const r of ['title','sub','heading','body']) {
+    saved[r] = { family: fontRoles[r], src: document.getElementById(`src-${r}`)?.value || 'loaded' };
+  }
+  localStorage.setItem('typori-roles', JSON.stringify(saved));
+}
+
+function applyTexts() {
+  for (const role of ['title','sub','heading','body']) {
+    const val = textContent[role];
+    document.querySelectorAll(`.text-${role}`).forEach(el => { el.textContent = val; });
+  }
+}
+
+// ── Font select population ────────────────────────────────────────
+function populateFontSelect(selectEl, src) {
+  selectEl.innerHTML = '';
+  if (src === 'loaded') {
+    if (!loadedFonts.length) {
+      selectEl.innerHTML = '<option value="">— load fonts on landing page —</option>';
+      return;
+    }
+    selectEl.innerHTML = loadedFonts.map(f => {
+      const slug = f.name.replace(/[^a-zA-Z0-9]/g, '-');
+      return `<option value="${slug}">${f.name}</option>`;
+    }).join('');
+  } else if (src === 'system') {
+    selectEl.innerHTML = SYSTEM_FONTS.map(f => `<option value="${f}">${f}</option>`).join('');
+  } else {
+    // Google — show loaded Google fonts from localStorage
+    const gfonts = [...googleFontsLoaded];
+    selectEl.innerHTML = gfonts.length
+      ? gfonts.map(n => `<option value="${n}">${n}</option>`).join('')
+      : '<option value="">— load a Google Font below —</option>';
+  }
+}
+
+function setupRoleControl(role) {
+  const srcSel = document.getElementById(`src-${role}`);
+  const fntSel = document.getElementById(`fnt-${role}`);
+  const gfInput = document.getElementById(`gf-${role}`);
+  const loadBtn = document.getElementById(`load-gf-${role}`);
+
+  const updateVisibility = (src) => {
+    fntSel.style.display = src === 'google' ? '' : '';
+    gfInput.style.display = src === 'google' ? '' : 'none';
+    loadBtn.style.display = src === 'google' ? '' : 'none';
+    populateFontSelect(fntSel, src);
+    // Auto-apply first option
+    if (fntSel.options.length && fntSel.value) setFontRole(role, fntSel.value);
+  };
+
+  srcSel.onchange = () => updateVisibility(srcSel.value);
+  fntSel.onchange = () => setFontRole(role, fntSel.value);
+
+  loadBtn.onclick = () => {
+    const name = gfInput.value.trim(); if (!name) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}:wght@100;200;300;400;500;600;700;800;900&display=swap`;
+    document.head.appendChild(link);
+    link.onload = () => {
+      googleFontsLoaded.add(name);
+      localStorage.setItem('typori-gfonts', JSON.stringify([...googleFontsLoaded]));
+      populateFontSelect(fntSel, 'google');
+      fntSel.value = name;
+      setFontRole(role, name);
+    };
+  };
+
+  // Load saved roles from localStorage
+  const saved = JSON.parse(localStorage.getItem('typori-roles') || '{}');
+  if (saved[role]) {
+    srcSel.value = saved[role].src || 'loaded';
+    updateVisibility(srcSel.value);
+    if (saved[role].family) {
+      if (fntSel.querySelector(`option[value="${saved[role].family}"]`)) {
+        fntSel.value = saved[role].family;
+        setFontRole(role, saved[role].family);
+      }
+    }
+  } else {
+    updateVisibility('loaded');
+  }
+}
+
+// ── Text inputs ───────────────────────────────────────────────────
+function saveTexts() { localStorage.setItem('typori-texts', JSON.stringify(textContent)); }
+for (const role of ['title','sub','heading','body']) {
+  document.getElementById(`text-${role}`).oninput = e => {
+    textContent[role] = e.target.value;
+    document.querySelectorAll(`.text-${role}`).forEach(el => { el.textContent = e.target.value; });
+    saveTexts();
+  };
+}
+
+// ── Page size ─────────────────────────────────────────────────────
+document.getElementById('page-size').onchange = e => {
+  const ratio = e.target.value || '1 / 1.35';
+  document.querySelectorAll('.preview-card').forEach(card => { card.style.aspectRatio = ratio; });
+};
+
+// ── Background (applies to each card) ────────────────────────────
+let bgType = 'color';
+const cards = () => document.querySelectorAll('.preview-card');
+document.querySelectorAll('.bg-type-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.bg-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); bgType = btn.dataset.bg;
+    document.getElementById('bg-img-label').style.display = bgType === 'image' ? '' : 'none';
+    document.querySelector('.color-swatch').style.display = bgType === 'image' ? 'none' : '';
+    applyBackground();
+  };
+});
+document.getElementById('bg-color').oninput = applyBackground;
+document.getElementById('bg-image').onchange = e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    cards().forEach(card => {
+      card.style.backgroundImage = `url('${ev.target.result}')`;
+      card.style.backgroundSize = 'cover'; card.style.backgroundPosition = 'center';
+      card.style.backgroundRepeat = 'no-repeat';
+    });
+  };
+  reader.readAsDataURL(file);
+};
+function applyBackground() {
+  if (bgType === 'color') {
+    const c = document.getElementById('bg-color').value;
+    cards().forEach(card => { card.style.setProperty('--card-bg', c); card.style.backgroundImage = ''; });
+  } else if (bgType === 'gradient') {
+    cards().forEach(card => {
+      card.style.removeProperty('--card-bg');
+      card.style.background = 'linear-gradient(135deg, #1a1c1c 0%, #d34000 45%, #f7f5f3 100%)';
+    });
+  }
+}
+
+// ── Export ────────────────────────────────────────────────────────
+async function getFontsDB() { return getFonts(); }
+function uint8ToB64(bytes) {
+  let s = ''; const chunk = 8192;
+  for (let i = 0; i < bytes.length; i += chunk)
+    s += String.fromCharCode(...bytes.subarray(i, Math.min(i+chunk, bytes.length)));
+  return btoa(s);
+}
+function collectPageCSS() {
+  let css = '';
+  for (const sheet of document.styleSheets) {
+    try { for (const rule of sheet.cssRules) css += rule.cssText + '\n'; } catch(e) {}
+  }
+  return css;
+}
+
+async function exportPNG(cardId) {
+  const inner = document.getElementById(`card-${cardId}`)?.querySelector('.layout-hero, .layout-article, .layout-dark, .layout-pricing, .layout-app, .layout-mobile');
+  if (!inner) return;
+  const canvas = await html2canvas(inner, { scale: 2, useCORS: true });
+  const a = document.createElement('a');
+  a.download = `typori-display-${cardId}.png`;
+  a.href = canvas.toDataURL('image/png'); a.click();
+}
+
+async function exportPrint(cardId) {
+  const card = document.getElementById(`card-${cardId}`);
+  if (!card) return;
+  const fonts = await getFontsDB();
+  let fontCSS = '';
+  for (const f of fonts) {
+    if (f.buffer) {
+      const slug = f.name.replace(/[^a-zA-Z0-9]/g, '-');
+      const b64 = uint8ToB64(new Uint8Array(f.buffer));
+      fontCSS += `@font-face{font-family:'${slug}';src:url('data:font/truetype;base64,${b64}')}\n`;
+    }
+  }
+  const gFonts = [...googleFontsLoaded];
+  const gLinks = gFonts.map(n =>
+    `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(n)}:wght@100;400;700;900&display=swap">`
+  ).join('');
+  const cs = getComputedStyle(document.documentElement);
+  const varCSS = ['title','sub','heading','body'].map(r =>
+    `--font-${r}: ${cs.getPropertyValue('--font-'+r) || 'system-ui, sans-serif'};`
+  ).join('');
+  const rootCSS = `:root { --orange:#d34000; --ink:#1a1c1c; --ink-mid:#5c4037; --ink-faint:#916f65; --paper:#f7f5f3; --paper-dim:#edeae7; --paper-dimmer:#e2dfdc; --white:#fefcfa; --ff-sans:'Hanken Grotesk',system-ui,sans-serif; --ff-mono:'JetBrains Mono',monospace; ${varCSS} }`;
+  const pageCSS = collectPageCSS();
+  const win = window.open('','_blank','width=1000,height=800');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    ${gLinks}
+    <style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    ${fontCSS}${rootCSS}
+    ${pageCSS}
+    body{margin:0;background:white}
+    .preview-tag,.preview-dl,.site-header{display:none!important}
+    @media print{@page{size:auto;margin:0}body{margin:0}}
+    </style></head><body>
+    ${card.querySelector('[class^="layout-"], [class*=" layout-"]')?.outerHTML || card.innerHTML}
+    <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),600))<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+document.getElementById('preview-grid').addEventListener('click', e => {
+  const btn = e.target.closest('.dl-btn'); if (!btn) return;
+  btn.dataset.fmt === 'png' ? exportPNG(btn.dataset.card) : exportPrint(btn.dataset.card);
+});
+document.getElementById('export-png-all').onclick = async () => {
+  for (let i = 1; i <= 6; i++) await exportPNG(i);
+};
+document.getElementById('export-pdf-all').onclick = async () => {
+  for (let i = 1; i <= 6; i++) await exportPrint(i);
+};
+
+// ── Init ──────────────────────────────────────────────────────────
+async function init() {
+  loadedFonts = await getFontsDB();
+  for (const f of loadedFonts) {
+    if (!f.isGoogle && f.buffer) {
+      const slug = f.name.replace(/[^a-zA-Z0-9]/g, '-');
+      try { const ff = new FontFace(slug, f.buffer); await ff.load(); document.fonts.add(ff); } catch(e) {}
+    }
+  }
+  // Re-inject saved Google Fonts
+  for (const name of googleFontsLoaded) {
+    if (!document.querySelector(`link[href*="${encodeURIComponent(name)}"]`)) {
+      const link = document.createElement('link'); link.rel = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}:wght@100;400;700;900&display=swap`;
+      document.head.appendChild(link);
+    }
+  }
+  for (const role of ['title','sub','heading','body']) setupRoleControl(role);
+  // Restore saved text values into inputs
+  for (const role of ['title','sub','heading','body']) {
+    const el = document.getElementById(`text-${role}`);
+    if (el) el.value = textContent[role];
+  }
+  applyTexts();
+}
+init();
+</script>
+</body>
+</html>
