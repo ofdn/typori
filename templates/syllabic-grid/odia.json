@@ -1,0 +1,21 @@
+{
+  "name": "Odia Akshara",
+  "description": "Basic consonants with vowel signs (matras) — Odia script",
+  "consonants": ["କ", "ଖ", "ଗ", "ଘ", "ଙ", "ଚ", "ଛ", "ଜ", "ଝ", "ଞ", "ଟ", "ଠ", "ଡ", "ଢ", "ଣ", "ତ", "ଥ", "ଦ", "ଧ", "ନ", "ପ", "ଫ", "ବ", "ଭ", "ମ", "ଯ", "ର", "ଲ", "ୱ", "ଶ", "ଷ", "ସ", "ହ", "ଳ"],
+  "vowelSigns": [
+    { "label": "—",   "sign": "" },
+    { "label": "ା",   "sign": "ା" },
+    { "label": "ି",   "sign": "ି" },
+    { "label": "ୀ",   "sign": "ୀ" },
+    { "label": "ୁ",   "sign": "ୁ" },
+    { "label": "ୂ",   "sign": "ୂ" },
+    { "label": "ୃ",   "sign": "ୃ" },
+    { "label": "େ",   "sign": "େ" },
+    { "label": "ୈ",   "sign": "ୈ" },
+    { "label": "ୋ",   "sign": "ୋ" },
+    { "label": "ୌ",   "sign": "ୌ" },
+    { "label": "ଂ",   "sign": "ଂ" },
+    { "label": "ଃ",   "sign": "ଃ" },
+    { "label": "୍",   "sign": "୍" }
+  ]
+}

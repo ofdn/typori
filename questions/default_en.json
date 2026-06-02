@@ -1,0 +1,47 @@
+{
+  "name": "Default Font Feedback Survey",
+  "language": "en",
+  "questions": [
+    {
+      "id": "q1",
+      "text": "How readable is the body text at 16px?",
+      "type": "rating",
+      "min": 1,
+      "max": 5,
+      "labels": { "min": "Not readable", "max": "Very readable" }
+    },
+    {
+      "id": "q2",
+      "text": "How well does the font handle conjuncts and complex script combinations?",
+      "type": "rating",
+      "min": 1,
+      "max": 5,
+      "labels": { "min": "Poor", "max": "Excellent" }
+    },
+    {
+      "id": "q3",
+      "text": "Does the font feel appropriate for the intended use case?",
+      "type": "choice",
+      "options": ["Yes, definitely", "Mostly yes", "Neutral", "Mostly no", "No"]
+    },
+    {
+      "id": "q4",
+      "text": "Which contexts would you use this font in?",
+      "type": "choice",
+      "options": ["Body text (print)", "Body text (screen)", "Display / headlines", "UI / interface", "Captions / labels"]
+    },
+    {
+      "id": "q5",
+      "text": "Please describe any specific issues you noticed (spacing, joins, specific characters).",
+      "type": "text"
+    },
+    {
+      "id": "q6",
+      "text": "Overall, how would you rate this font?",
+      "type": "rating",
+      "min": 1,
+      "max": 5,
+      "labels": { "min": "Needs work", "max": "Excellent" }
+    }
+  ]
+}

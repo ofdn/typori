@@ -1,0 +1,21 @@
+{
+  "name": "Devanagari Barakhadi",
+  "description": "Basic consonants with vowel signs (matra)",
+  "consonants": ["क", "ख", "ग", "घ", "ङ", "च", "छ", "ज", "झ", "ञ", "ट", "ठ", "ड", "ढ", "ण", "त", "थ", "द", "ध", "न", "प", "फ", "ब", "भ", "म", "य", "र", "ल", "व", "श", "ष", "स", "ह"],
+  "vowelSigns": [
+    { "label": "—", "sign": "" },
+    { "label": "ā", "sign": "ा" },
+    { "label": "i", "sign": "ि" },
+    { "label": "ī", "sign": "ी" },
+    { "label": "u", "sign": "ु" },
+    { "label": "ū", "sign": "ू" },
+    { "label": "ṛ", "sign": "ृ" },
+    { "label": "e", "sign": "े" },
+    { "label": "ai", "sign": "ै" },
+    { "label": "o", "sign": "ो" },
+    { "label": "au", "sign": "ौ" },
+    { "label": "ṃ", "sign": "ं" },
+    { "label": "ḥ", "sign": "ः" },
+    { "label": "hal", "sign": "्" }
+  ]
+}

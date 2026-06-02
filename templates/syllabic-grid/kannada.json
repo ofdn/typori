@@ -1,0 +1,23 @@
+{
+  "name": "Kannada Akshara",
+  "description": "Basic consonants with vowel signs (matras) — Kannada script",
+  "consonants": ["ಕ", "ಖ", "ಗ", "ಘ", "ಙ", "ಚ", "ಛ", "ಜ", "ಝ", "ಞ", "ಟ", "ಠ", "ಡ", "ಢ", "ಣ", "ತ", "ಥ", "ದ", "ಧ", "ನ", "ಪ", "ಫ", "ಬ", "ಭ", "ಮ", "ಯ", "ರ", "ಲ", "ವ", "ಶ", "ಷ", "ಸ", "ಹ", "ಳ"],
+  "vowelSigns": [
+    { "label": "—",   "sign": "" },
+    { "label": "ā",   "sign": "ಾ" },
+    { "label": "i",   "sign": "ಿ" },
+    { "label": "ī",   "sign": "ೀ" },
+    { "label": "u",   "sign": "ು" },
+    { "label": "ū",   "sign": "ೂ" },
+    { "label": "ṛ",   "sign": "ೃ" },
+    { "label": "e",   "sign": "ೆ" },
+    { "label": "ē",   "sign": "ೇ" },
+    { "label": "ai",  "sign": "ೈ" },
+    { "label": "o",   "sign": "ೊ" },
+    { "label": "ō",   "sign": "ೋ" },
+    { "label": "au",  "sign": "ೌ" },
+    { "label": "ಂ",   "sign": "ಂ" },
+    { "label": "ಃ",   "sign": "ಃ" },
+    { "label": "್",   "sign": "್" }
+  ]
+}

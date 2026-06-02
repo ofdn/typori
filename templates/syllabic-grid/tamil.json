@@ -1,0 +1,20 @@
+{
+  "name": "Tamil Akshara",
+  "description": "Basic consonants (mei) with vowel signs (uyir) — Tamil script",
+  "consonants": ["க", "ங", "ச", "ஞ", "ட", "ண", "த", "ந", "ப", "ம", "ய", "ர", "ல", "வ", "ழ", "ள", "ற", "ன"],
+  "vowelSigns": [
+    { "label": "—",   "sign": "" },
+    { "label": "ā",   "sign": "ா" },
+    { "label": "i",   "sign": "ி" },
+    { "label": "ī",   "sign": "ீ" },
+    { "label": "u",   "sign": "ு" },
+    { "label": "ū",   "sign": "ூ" },
+    { "label": "e",   "sign": "ெ" },
+    { "label": "ē",   "sign": "ே" },
+    { "label": "ai",  "sign": "ை" },
+    { "label": "o",   "sign": "ொ" },
+    { "label": "ō",   "sign": "ோ" },
+    { "label": "au",  "sign": "ௌ" },
+    { "label": "pulli","sign": "்" }
+  ]
+}

@@ -192,7 +192,7 @@
   /* Mode selection */
   .mode-section { margin-top: 40px; }
   .mode-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px;
     background: var(--paper-dimmer); border: 1px solid var(--paper-dimmer); margin-bottom: 12px;
   }
   .mode-card {
@@ -246,6 +246,7 @@
     nav { padding: 0 20px; }
     .hero-left, .hero-right { padding: 48px 20px; }
   }
+  @media (max-width: 700px) { .mode-grid { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 540px) {
     .features { grid-template-columns: 1fr; }
     .feature { border-right: none; border-bottom: 1px solid var(--paper-dimmer); }
@@ -261,6 +262,7 @@
   <div class="nav-right">
     <a class="nav-link" href="display.html">Web Display</a>
     <a class="nav-link" href="print.html">Print</a>
+    <a class="nav-link" href="syllabic.html">Syllabic Grid</a>
   </div>
 </nav>
 
@@ -363,6 +365,11 @@
             <span class="mode-card-icon">&#9632;</span>
             <span class="mode-card-title">Print</span>
             <span class="mode-card-desc">Newspaper, magazine, dense text, cover, stationery</span>
+          </button>
+          <button class="mode-card" data-mode="syllabic">
+            <span class="mode-card-icon">&#9651;</span>
+            <span class="mode-card-title">Syllabic Grid</span>
+            <span class="mode-card-desc">Barakhadi / Akshara grid for Indic scripts — consonant × vowel matrix</span>
           </button>
         </div>
         <button class="mode-go" id="mode-go-btn" disabled>Select a mode to continue</button>
@@ -681,11 +688,13 @@ document.querySelectorAll('.mode-card').forEach(card => {
     selectedMode = card.dataset.mode;
     const btn = document.getElementById('mode-go-btn');
     btn.disabled = false;
-    btn.textContent = selectedMode === 'display' ? 'Open Web Display Testing →' : 'Open Print Testing →';
+    const labels = { display: 'Open Web Display Testing →', print: 'Open Print Testing →', syllabic: 'Open Syllabic Grid →' };
+    btn.textContent = labels[selectedMode] || 'Continue →';
   };
 });
 document.getElementById('mode-go-btn').onclick = () => {
-  window.location.href = selectedMode === 'display' ? 'display.html' : 'print.html';
+  const urls = { display: 'display.html', print: 'print.html', syllabic: 'syllabic.html' };
+  if (urls[selectedMode]) window.location.href = urls[selectedMode];
 };
 
 // ── Init ──────────────────────────────────────────────────────────

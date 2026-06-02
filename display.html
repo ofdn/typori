@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="js/annotations.js"></script>
+<script src="js/feedback.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -17,22 +19,21 @@
   --white: #fefcfa;
   --ff-sans: 'Hanken Grotesk', system-ui, sans-serif;
   --ff-mono: 'JetBrains Mono', monospace;
-  /* Type role fonts — overridden via JS */
   --font-title:   'Hanken Grotesk', system-ui, sans-serif;
   --font-sub:     'Hanken Grotesk', system-ui, sans-serif;
   --font-heading: 'Hanken Grotesk', system-ui, sans-serif;
   --font-body:    'Hanken Grotesk', system-ui, sans-serif;
 }
 html { background: var(--paper); color: var(--ink); font-family: var(--ff-sans); }
-body { min-height: 100vh; display: flex; flex-direction: column; }
+body { min-height: 100vh; display: flex; flex-direction: column; transition: padding-right 280ms; }
+body.fb-open { padding-right: 340px; }
 
-/* Typo role classes */
 .typo-title   { font-family: var(--font-title); }
 .typo-sub     { font-family: var(--font-sub); }
 .typo-heading { font-family: var(--font-heading); }
 .typo-body    { font-family: var(--font-body); }
 
-/* ── Header (light, matching landing) ──────────────────────────── */
+/* ── Header ─────────────────────────────────────────────────── */
 .site-header {
   position: sticky; top: 0; z-index: 200;
   background: var(--paper); display: flex; flex-direction: column;
@@ -46,7 +47,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
   font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--ink); text-decoration: none; margin-right: 28px;
 }
-.page-tabs { display: flex; gap: 0; }
+.page-tabs { display: flex; }
 .ptab {
   font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
   text-transform: uppercase; padding: 0 18px; height: 52px; display: flex; align-items: center;
@@ -72,8 +73,10 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .export-btn:hover { border-color: var(--ink); color: var(--ink); }
 .export-btn.primary { background: var(--orange); border-color: var(--orange); color: var(--white); }
 .export-btn.primary:hover { background: var(--orange-dark); }
+.export-btn.accent { background: var(--ink); border-color: var(--ink); color: var(--white); }
+.export-btn.accent:hover { background: var(--orange); border-color: var(--orange); }
 
-/* ── Ctrl rows ──────────────────────────────────────────────────── */
+/* ── Ctrl rows ──────────────────────────────────────────────── */
 .ctrl-row {
   display: flex; align-items: stretch; border-bottom: 1px solid var(--paper-dimmer);
   background: var(--white); min-height: 40px; overflow-x: auto;
@@ -89,13 +92,13 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 }
 .ctrl-input {
   background: transparent; border: 1px solid transparent; color: var(--ink);
-  font-family: var(--ff-sans); font-size: 12px; padding: 4px 6px; outline: none;
-  min-width: 0;
+  font-family: var(--ff-sans); font-size: 12px; padding: 4px 6px; outline: none; min-width: 0;
 }
 .ctrl-input:focus { border-color: var(--paper-dimmer); background: var(--paper); }
 .ctrl-input.wide { width: 200px; }
 .ctrl-input.med  { width: 140px; }
 .ctrl-input.sm   { width: 90px; }
+.ctrl-input.xs   { width: 70px; }
 .ctrl-select {
   background: transparent; border: 1px solid var(--paper-dimmer); color: var(--ink);
   font-family: var(--ff-mono); font-size: 10px; padding: 4px 20px 4px 6px; outline: none; cursor: pointer;
@@ -110,8 +113,6 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
   cursor: pointer; white-space: nowrap;
 }
 .ctrl-btn:hover { border-color: var(--orange); color: var(--orange); }
-
-/* Role badges */
 .role-badge {
   width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
   font-family: var(--ff-mono); font-size: 8px; font-weight: 700; color: var(--white);
@@ -121,6 +122,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .badge-s { background: var(--ink-mid); }
 .badge-h { background: var(--ink); }
 .badge-b { background: var(--ink-faint); }
+.badge-n { background: #5c8a6e; }
 
 /* BG controls */
 .bg-group { display: flex; gap: 4px; align-items: center; }
@@ -143,7 +145,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
   border: 1px solid var(--paper-dimmer); color: var(--ink-faint); cursor: pointer;
 }
 
-/* ── Textarea expand ─────────────────────────────────────────────── */
+/* ── Textarea expand ─────────────────────────────────────────── */
 .ctrl-textarea {
   resize: none; overflow: hidden; height: 26px; line-height: 1.4;
   transition: height 180ms ease; vertical-align: top; font-family: inherit;
@@ -151,7 +153,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 }
 .ctrl-textarea:focus { height: 72px; overflow-y: auto; white-space: normal; }
 
-/* ── Footer ──────────────────────────────────────────────────────── */
+/* ── Footer ─────────────────────────────────────────────────── */
 .site-footer {
   padding: 14px 32px; display: flex; align-items: center; justify-content: space-between;
   border-top: 1px solid var(--paper-dimmer); background: var(--paper); flex-shrink: 0;
@@ -163,7 +165,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .footer-link { color: var(--ink-faint); text-decoration: underline; }
 .footer-link:hover { color: var(--orange); }
 
-/* ── Preview canvas ──────────────────────────────────────────────── */
+/* ── Preview canvas ─────────────────────────────────────────── */
 #preview-canvas { padding: 32px; background: var(--paper); }
 .preview-grid {
   display: grid; grid-template-columns: repeat(2, 1fr);
@@ -372,16 +374,186 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
   display: flex; justify-content: space-around; padding: 10px 0;
   border-top: 1px solid var(--paper-dimmer);
 }
-.phone-nav-dot {
-  width: 6px; height: 6px; border-radius: 50%; background: var(--paper-dimmer);
-}
+.phone-nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--paper-dimmer); }
 .phone-nav-dot.active { background: var(--orange); }
 
+/* ── Feedback Panel ──────────────────────────────────────────── */
+#fb-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: 340px;
+  background: var(--white); border-left: 1px solid var(--paper-dimmer);
+  z-index: 500; transform: translateX(100%); transition: transform 280ms cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: -4px 0 20px rgba(0,0,0,.12);
+}
+#fb-panel.open { transform: translateX(0); }
+.fb-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; height: 52px; border-bottom: 1px solid var(--paper-dimmer);
+  background: var(--ink); flex-shrink: 0;
+}
+.fb-hdr-title {
+  font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--white); font-family: var(--ff-mono);
+}
+.fb-close {
+  background: none; border: none; color: rgba(255,255,255,.5);
+  font-size: 20px; cursor: pointer; padding: 0 4px; line-height: 1;
+}
+.fb-close:hover { color: var(--white); }
+.fb-mode-tabs {
+  display: flex; border-bottom: 1px solid var(--paper-dimmer); flex-shrink: 0; background: var(--paper-dim);
+}
+.fb-mode-tab {
+  flex: 1; padding: 9px 0; font-family: var(--ff-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase; border: none; background: transparent;
+  color: var(--ink-faint); cursor: pointer; border-bottom: 2px solid transparent; transition: all 100ms;
+}
+.fb-mode-tab.active { color: var(--orange); border-bottom-color: var(--orange); background: var(--white); }
+.fb-mode-tab:not(.active):hover { color: var(--ink); }
+#fb-panel-body { flex: 1; overflow-y: auto; padding: 16px; }
+.fb-section { margin-bottom: 18px; }
+.fb-sec-title {
+  font-family: var(--ff-mono); font-size: 9px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--orange);
+  margin-bottom: 9px; display: block;
+}
+.fb-inp {
+  width: 100%; padding: 7px 10px; border: 1px solid var(--paper-dimmer);
+  font-family: var(--ff-sans); font-size: 12px; color: var(--ink);
+  background: var(--paper); outline: none; margin-bottom: 6px;
+}
+.fb-inp:focus { border-color: var(--orange); background: var(--white); }
+textarea.fb-inp { resize: vertical; min-height: 44px; }
+.fb-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+.fb-btn {
+  font-family: var(--ff-mono); font-size: 10px; padding: 5px 10px;
+  border: 1px solid var(--paper-dimmer); background: transparent;
+  color: var(--ink-faint); cursor: pointer; flex-shrink: 0; white-space: nowrap;
+}
+.fb-btn:hover { border-color: var(--orange); color: var(--orange); }
+.fb-btn.p { background: var(--orange); color: var(--white); border-color: var(--orange); }
+.fb-btn.p:hover { background: var(--orange-dark); }
+.fb-btn-full { width: 100%; text-align: center; }
+/* Tester view */
+.fb-q {
+  background: var(--paper); padding: 10px 12px; margin-bottom: 8px;
+  border: 1px solid var(--paper-dimmer);
+}
+.fb-qtext { font-size: 12px; color: var(--ink); margin-bottom: 7px; line-height: 1.4; }
+.fb-qn {
+  font-family: var(--ff-mono); font-size: 10px; color: var(--orange);
+  margin-right: 5px; font-weight: 700;
+}
+.fb-rating { display: flex; gap: 4px; margin-bottom: 3px; flex-wrap: wrap; }
+.fb-num {
+  width: 28px; height: 28px; border: 1px solid var(--paper-dimmer);
+  background: transparent; font-size: 11px; cursor: pointer; color: var(--ink-faint);
+  font-family: var(--ff-mono); display: flex; align-items: center; justify-content: center;
+}
+.fb-num.on { background: var(--orange); color: var(--white); border-color: var(--orange); }
+.fb-num:hover:not(.on) { border-color: var(--orange); color: var(--orange); }
+.fb-rlbls { display: flex; justify-content: space-between; font-size: 9px; color: var(--ink-faint); margin-top: 3px; font-family: var(--ff-mono); }
+.fb-choices { display: flex; flex-direction: column; gap: 5px; }
+.fb-choice { font-size: 11px; color: var(--ink); cursor: pointer; display: flex; align-items: baseline; gap: 5px; }
+.fb-txt {
+  width: 100%; padding: 6px 8px; border: 1px solid var(--paper-dimmer);
+  font-family: var(--ff-sans); font-size: 11px; color: var(--ink);
+  background: var(--white); outline: none; resize: vertical;
+}
+/* Designer edit view */
+.fb-q-edit {
+  background: var(--paper); border: 1px solid var(--paper-dimmer);
+  margin-bottom: 8px; padding: 10px 12px;
+}
+.fb-q-edit-hdr {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 7px;
+}
+.fb-type-sel {
+  font-family: var(--ff-mono); font-size: 10px; padding: 3px 18px 3px 6px;
+  border: 1px solid var(--paper-dimmer); background: var(--white); color: var(--ink);
+  outline: none; cursor: pointer; -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23916f65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 5px center; flex-shrink: 0;
+}
+.fb-q-del {
+  margin-left: auto; background: none; border: none; color: var(--ink-faint);
+  font-size: 14px; cursor: pointer; padding: 0 2px; flex-shrink: 0; line-height: 1;
+}
+.fb-q-del:hover { color: var(--orange); }
+.fb-q-extra { margin-top: 6px; }
+.fb-q-extra-row { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+.fb-tiny-label { font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint); white-space: nowrap; }
+.fb-num-inp {
+  width: 42px; padding: 4px 6px; border: 1px solid var(--paper-dimmer);
+  font-family: var(--ff-mono); font-size: 11px; text-align: center;
+  background: var(--paper); color: var(--ink); outline: none;
+}
+/* Tester brief (in tester mode from designer) */
+.fb-designer-brief { background: var(--paper-dim); padding: 12px; border: 1px solid var(--paper-dimmer); }
+.fb-brief-who { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+.fb-brief-contact { font-size: 11px; color: var(--ink-faint); font-family: var(--ff-mono); margin-bottom: 6px; }
+.fb-brief-text { font-size: 12px; color: var(--ink-mid); line-height: 1.5; }
+.fb-hint { font-size: 10px; color: var(--ink-faint); line-height: 1.5; margin-bottom: 8px; font-family: var(--ff-mono); }
+.fb-divider { height: 1px; background: var(--paper-dimmer); margin: 14px 0; }
+.fb-empty { font-size: 11px; color: var(--ink-faint); font-family: var(--ff-mono); padding: 6px 0; }
+#fb-import-inp, #designer-import-inp, #ref-pdf-inp { display: none; }
+/* Annotation toolbar */
+.fb-annot-toolbar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.fb-ann-tool {
+  font-family: var(--ff-mono); font-size: 10px; padding: 5px 10px;
+  border: 1px solid var(--paper-dimmer); background: transparent;
+  color: var(--ink-faint); cursor: pointer; white-space: nowrap;
+}
+.fb-ann-tool.active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+.fb-ann-tool:hover:not(.active) { border-color: var(--orange); color: var(--orange); }
+.fb-ann-colors { display: flex; gap: 4px; align-items: center; }
+.fb-ann-color {
+  width: 22px; height: 22px; border: 2px solid transparent;
+  cursor: pointer; border-radius: 2px; flex-shrink: 0;
+}
+.fb-ann-color.active { border-color: var(--orange); outline: 1px solid var(--orange); }
+/* Annotation SVG cursor mode hint */
+.preview-card:has(.annot-svg) { cursor: crosshair; }
+/* Locked questions state */
+.fb-locked-notice {
+  background: #fff8e1; border: 1px solid #f0c040; padding: 8px 10px; margin-bottom: 10px;
+  font-size: 10px; color: #5c4000; font-family: var(--ff-mono); display: flex;
+  align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.fb-lock-icon { font-size: 13px; flex-shrink: 0; }
+.fb-unlock-btn {
+  margin-left: auto; font-family: var(--ff-mono); font-size: 9px; padding: 3px 8px;
+  border: 1px solid #c09000; background: transparent; color: #5c4000; cursor: pointer; white-space: nowrap;
+}
+.fb-unlock-btn:hover { background: #5c4000; color: #fff; }
+.fb-q-locked {
+  display: flex; gap: 6px; padding: 7px 0; border-bottom: 1px solid var(--paper-dimmer);
+  font-size: 11px; color: var(--ink-mid); line-height: 1.4;
+}
+.fb-q-locked:last-child { border-bottom: none; }
+.fb-q-locked-text { flex: 1; }
+/* Export dropdown */
+.export-wrap { position: relative; }
+.export-dropdown {
+  position: absolute; top: 100%; right: 0; z-index: 300; margin-top: 4px;
+  background: var(--white); border: 1px solid var(--paper-dimmer);
+  box-shadow: 0 4px 16px rgba(0,0,0,.12); min-width: 200px;
+}
+.export-dropdown button {
+  display: block; width: 100%; text-align: left; padding: 9px 14px;
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: .04em;
+  text-transform: uppercase; border: none; background: transparent;
+  color: var(--ink-faint); cursor: pointer; border-bottom: 1px solid var(--paper-dimmer);
+}
+.export-dropdown button:last-child { border-bottom: none; }
+.export-dropdown button:hover { background: var(--paper-dim); color: var(--ink); }
+.export-dropdown .export-dd-divider { height: 1px; background: var(--paper-dimmer); }
+
 @media (max-width: 900px) { .preview-grid { grid-template-columns: 1fr; } .preview-card { aspect-ratio: 1 / 1.35; } }
-@media (max-width: 700px) { #preview-canvas { padding: 16px; } .ctrl-row { flex-wrap: nowrap; overflow-x: auto; } }
+@media (max-width: 700px) { #preview-canvas { padding: 16px; } .ctrl-row { flex-wrap: nowrap; overflow-x: auto; } body.fb-open { padding-right: 0; } }
 </style>
 </head>
-<body>
+<body data-page="display">
 
 <header class="site-header">
   <!-- Nav row -->
@@ -390,6 +562,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
     <div class="page-tabs">
       <a class="ptab active" href="display.html">Web Display</a>
       <a class="ptab" href="print.html">Print</a>
+      <a class="ptab" href="syllabic.html">Syllabic Grid</a>
     </div>
     <div class="nav-right">
       <label class="ctrl-label" for="page-size" style="margin:0">Canvas</label>
@@ -402,7 +575,15 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
         <option value="1/1">Square</option>
       </select>
       <button class="export-btn primary" id="export-png-all">Export PNG</button>
-      <button class="export-btn" id="export-pdf-all">Print / PDF</button>
+      <div class="export-wrap">
+        <button class="export-btn" id="btn-pdf-menu">Export PDF ▾</button>
+        <div class="export-dropdown" id="pdf-dropdown" style="display:none">
+          <button data-pdf="layout">Layout pages only</button>
+          <button data-pdf="qa">Q&amp;A page only</button>
+          <button data-pdf="both">Layout + Q&amp;A (full)</button>
+        </div>
+      </div>
+      <button class="export-btn" id="btn-fb-panel">Feedback ▸</button>
     </div>
   </div>
 
@@ -424,6 +605,10 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
       <span class="ctrl-label">Body</span>
       <textarea class="ctrl-input ctrl-textarea" id="text-body" style="width:100%;min-width:140px">The principles of Swiss typography continue to influence digital design.</textarea>
     </div>
+    <div class="ctrl-cell">
+      <span class="role-badge badge-n" title="Note / Kicker / Salutation">N</span>
+      <input type="text" class="ctrl-input xs" id="text-note" placeholder="Note / Kicker">
+    </div>
     <!-- Background -->
     <div class="ctrl-cell">
       <span class="ctrl-label">BG</span>
@@ -442,7 +627,6 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 
   <!-- Font roles row -->
   <div class="ctrl-row">
-    <!-- Title font -->
     <div class="ctrl-cell">
       <span class="role-badge badge-t">T</span>
       <select class="ctrl-select" id="src-title" data-role="title">
@@ -454,7 +638,6 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
       <input type="text" class="ctrl-input sm" id="gf-title" placeholder="Font name" style="display:none">
       <button class="ctrl-btn" id="load-gf-title" data-role="title" style="display:none">Load</button>
     </div>
-    <!-- Subtitle font -->
     <div class="ctrl-cell">
       <span class="role-badge badge-s">S</span>
       <select class="ctrl-select" id="src-sub" data-role="sub">
@@ -466,7 +649,6 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
       <input type="text" class="ctrl-input sm" id="gf-sub" placeholder="Font name" style="display:none">
       <button class="ctrl-btn" id="load-gf-sub" data-role="sub" style="display:none">Load</button>
     </div>
-    <!-- Heading font -->
     <div class="ctrl-cell">
       <span class="role-badge badge-h">H</span>
       <select class="ctrl-select" id="src-heading" data-role="heading">
@@ -478,7 +660,6 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
       <input type="text" class="ctrl-input sm" id="gf-heading" placeholder="Font name" style="display:none">
       <button class="ctrl-btn" id="load-gf-heading" data-role="heading" style="display:none">Load</button>
     </div>
-    <!-- Body font -->
     <div class="ctrl-cell grow">
       <span class="role-badge badge-b">B</span>
       <select class="ctrl-select" id="src-body" data-role="body">
@@ -511,7 +692,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
         <p class="hero-deck typo-body text-body">The principles of Swiss typography continue to influence digital design systems worldwide.</p>
         <button class="hero-cta typo-heading text-heading">Explore Article</button>
         <div class="hero-byline">
-          <span class="typo-body">By Das &amp; Müller</span>
+          <span class="typo-body text-note">By Das &amp; Müller</span>
           <span class="typo-body">June 2026 &nbsp;·&nbsp; 12 min read</span>
         </div>
       </div>
@@ -537,11 +718,11 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
         <span class="article-sidebar-label typo-heading">Also in this issue</span>
         <div class="sidebar-item">
           <p class="sidebar-item-hed typo-heading text-heading">Explore Now</p>
-          <p class="sidebar-item-txt typo-body">Variable font era transforms workflows across studios worldwide.</p>
+          <p class="sidebar-item-txt typo-body text-body">Variable font era transforms workflows across studios worldwide.</p>
         </div>
         <div class="sidebar-item">
           <p class="sidebar-item-hed typo-heading text-heading">Explore Now</p>
-          <p class="sidebar-item-txt typo-body">Odia and Devanagari scripts enter the global type conversation.</p>
+          <p class="sidebar-item-txt typo-body text-body">Odia and Devanagari scripts enter the global type conversation.</p>
         </div>
       </div>
     </div>
@@ -564,7 +745,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
       <div class="dark-stats">
         <div>
           <span class="dark-stat-val typo-title">2,400</span>
-          <span class="dark-stat-label typo-body">Words</span>
+          <span class="dark-stat-label typo-body text-note">Words</span>
         </div>
         <div>
           <span class="dark-stat-val typo-title">12 min</span>
@@ -607,11 +788,11 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
     </div>
     <div class="layout-app">
       <div class="app-nav">
-        <span class="app-brand typo-title">Architecture</span>
+        <span class="app-brand typo-title text-title">Architecture</span>
         <div class="app-nav-links">
-          <span class="app-nav-link typo-body">Overview</span>
-          <span class="app-nav-link typo-body">Projects</span>
-          <span class="app-nav-link typo-body">Settings</span>
+          <span class="app-nav-link typo-body text-heading">Overview</span>
+          <span class="app-nav-link typo-body text-heading">Projects</span>
+          <span class="app-nav-link typo-body text-heading">Settings</span>
         </div>
       </div>
       <div class="app-body">
@@ -620,21 +801,21 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
         <div class="app-cards">
           <div class="app-card accent">
             <div class="app-card-val typo-title">1,240</div>
-            <div class="app-card-label typo-body">Sessions</div>
+            <div class="app-card-label typo-body text-note">Sessions</div>
           </div>
           <div class="app-card">
             <div class="app-card-val typo-title">98%</div>
-            <div class="app-card-label typo-body">Uptime</div>
+            <div class="app-card-label typo-body text-note">Uptime</div>
           </div>
           <div class="app-card">
             <div class="app-card-val typo-title">4.2s</div>
-            <div class="app-card-label typo-body">Avg. load</div>
+            <div class="app-card-label typo-body text-note">Avg. load</div>
           </div>
         </div>
         <p class="app-section-hed typo-heading text-heading">Explore Now</p>
-        <div class="app-row"><span class="typo-body">Switzerland · 2026</span></div>
-        <div class="app-row"><span class="typo-body">Germany · 2025</span></div>
-        <div class="app-row"><span class="typo-body">India · 2024</span></div>
+        <div class="app-row"><span class="typo-body text-body">Switzerland · 2026</span></div>
+        <div class="app-row"><span class="typo-body text-body">Germany · 2025</span></div>
+        <div class="app-row"><span class="typo-body text-body">India · 2024</span></div>
       </div>
     </div>
   </div>
@@ -673,8 +854,21 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
   <span class="footer-r">v.0.0.2-beta &nbsp;&middot;&nbsp; <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener" class="footer-link">MIT License</a></span>
 </footer>
 
+<!-- Feedback Panel -->
+<div id="fb-panel">
+  <div class="fb-hdr">
+    <span class="fb-hdr-title">Font Feedback</span>
+    <button class="fb-close" id="btn-fb-close" title="Close">✕</button>
+  </div>
+  <div class="fb-mode-tabs">
+    <button class="fb-mode-tab active" data-mode="designer">Designer</button>
+    <button class="fb-mode-tab" data-mode="tester">Tester</button>
+  </div>
+  <div id="fb-panel-body"></div>
+</div>
+
 <script>
-// ── IndexedDB ────────────────────────────────────────────────────
+// ── IndexedDB ─────────────────────────────────────────────────
 const DB_NAME = 'typori-fonts', DB_VER = 1, STORE = 'fonts';
 function openDB() {
   return new Promise((res, rej) => {
@@ -691,7 +885,7 @@ async function getFonts() {
   return new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = rej; });
 }
 
-// ── System fonts ─────────────────────────────────────────────────
+// ── System fonts ──────────────────────────────────────────────
 const SYSTEM_FONTS = [
   'system-ui','Arial','Arial Narrow','Georgia','Times New Roman','Courier New',
   'Helvetica','Verdana','Trebuchet MS','Impact','Comic Sans MS',
@@ -699,23 +893,25 @@ const SYSTEM_FONTS = [
   'Gill Sans','Calibri','Cambria','Consolas','Lucida Console',
 ];
 
-// ── State ────────────────────────────────────────────────────────
+// ── State ─────────────────────────────────────────────────────
 const fontRoles = { title:'', sub:'', heading:'', body:'' };
 const _defaults = {
-  title: 'Architecture of Type', sub: 'Modernism is not a style, but a search',
-  heading: 'Explore Now', body: 'The principles of Swiss typography continue to influence digital design.',
+  title: 'Architecture of Type',
+  sub:   'Modernism is not a style, but a search',
+  heading: 'Explore Now',
+  body:  'The principles of Swiss typography continue to influence digital design.',
+  note:  '',
 };
 const textContent = Object.assign({}, _defaults,
   JSON.parse(localStorage.getItem('typori-texts') || '{}'));
 let loadedFonts = [];
 const googleFontsLoaded = new Set(JSON.parse(localStorage.getItem('typori-gfonts') || '[]'));
 
-// ── Font application ─────────────────────────────────────────────
+// ── Font application ──────────────────────────────────────────
 function setFontRole(role, family) {
   fontRoles[role] = family;
-  const value = family ? `'${family}', system-ui, sans-serif` : 'system-ui, sans-serif';
+  const value = family ? `'${family}', system-ui, -apple-system, sans-serif` : 'system-ui, -apple-system, sans-serif';
   document.documentElement.style.setProperty(`--font-${role}`, value);
-  // Save roles
   const saved = {};
   for (const r of ['title','sub','heading','body']) {
     saved[r] = { family: fontRoles[r], src: document.getElementById(`src-${r}`)?.value || 'loaded' };
@@ -724,13 +920,13 @@ function setFontRole(role, family) {
 }
 
 function applyTexts() {
-  for (const role of ['title','sub','heading','body']) {
-    const val = textContent[role];
+  for (const role of ['title','sub','heading','body','note']) {
+    const val = textContent[role] || '';
     document.querySelectorAll(`.text-${role}`).forEach(el => { el.textContent = val; });
   }
 }
 
-// ── Font select population ────────────────────────────────────────
+// ── Font select population ────────────────────────────────────
 function populateFontSelect(selectEl, src) {
   selectEl.innerHTML = '';
   if (src === 'loaded') {
@@ -745,7 +941,6 @@ function populateFontSelect(selectEl, src) {
   } else if (src === 'system') {
     selectEl.innerHTML = SYSTEM_FONTS.map(f => `<option value="${f}">${f}</option>`).join('');
   } else {
-    // Google — show loaded Google fonts from localStorage
     const gfonts = [...googleFontsLoaded];
     selectEl.innerHTML = gfonts.length
       ? gfonts.map(n => `<option value="${n}">${n}</option>`).join('')
@@ -760,11 +955,9 @@ function setupRoleControl(role) {
   const loadBtn = document.getElementById(`load-gf-${role}`);
 
   const updateVisibility = (src) => {
-    fntSel.style.display = src === 'google' ? '' : '';
     gfInput.style.display = src === 'google' ? '' : 'none';
     loadBtn.style.display = src === 'google' ? '' : 'none';
     populateFontSelect(fntSel, src);
-    // Auto-apply first option
     if (fntSel.options.length && fntSel.value) setFontRole(role, fntSel.value);
   };
 
@@ -786,7 +979,6 @@ function setupRoleControl(role) {
     };
   };
 
-  // Load saved roles from localStorage
   const saved = JSON.parse(localStorage.getItem('typori-roles') || '{}');
   if (saved[role]) {
     srcSel.value = saved[role].src || 'loaded';
@@ -802,23 +994,25 @@ function setupRoleControl(role) {
   }
 }
 
-// ── Text inputs ───────────────────────────────────────────────────
+// ── Text inputs ───────────────────────────────────────────────
 function saveTexts() { localStorage.setItem('typori-texts', JSON.stringify(textContent)); }
-for (const role of ['title','sub','heading','body']) {
-  document.getElementById(`text-${role}`).oninput = e => {
+for (const role of ['title','sub','heading','body','note']) {
+  const el = document.getElementById(`text-${role}`);
+  if (!el) continue;
+  el.oninput = e => {
     textContent[role] = e.target.value;
     document.querySelectorAll(`.text-${role}`).forEach(el => { el.textContent = e.target.value; });
     saveTexts();
   };
 }
 
-// ── Page size ─────────────────────────────────────────────────────
+// ── Page size ─────────────────────────────────────────────────
 document.getElementById('page-size').onchange = e => {
   const ratio = e.target.value || '1 / 1.35';
   document.querySelectorAll('.preview-card').forEach(card => { card.style.aspectRatio = ratio; });
 };
 
-// ── Background (applies to each card) ────────────────────────────
+// ── Background ────────────────────────────────────────────────
 let bgType = 'color';
 const cards = () => document.querySelectorAll('.preview-card');
 document.querySelectorAll('.bg-type-btn').forEach(btn => {
@@ -855,8 +1049,7 @@ function applyBackground() {
   }
 }
 
-// ── Export ────────────────────────────────────────────────────────
-async function getFontsDB() { return getFonts(); }
+// ── Export utilities ──────────────────────────────────────────
 function uint8ToB64(bytes) {
   let s = ''; const chunk = 8192;
   for (let i = 0; i < bytes.length; i += chunk)
@@ -871,19 +1064,31 @@ function collectPageCSS() {
   return css;
 }
 
+// ── PNG export (with spacing fix for non-Latin fonts) ─────────
 async function exportPNG(cardId) {
-  const inner = document.getElementById(`card-${cardId}`)?.querySelector('.layout-hero, .layout-article, .layout-dark, .layout-pricing, .layout-app, .layout-mobile');
+  const inner = document.getElementById(`card-${cardId}`)?.querySelector('.layout-hero,.layout-article,.layout-dark,.layout-pricing,.layout-app,.layout-mobile');
   if (!inner) return;
-  const canvas = await html2canvas(inner, { scale: 2, useCORS: true });
+  await document.fonts.ready;
+  const canvas = await html2canvas(inner, {
+    scale: 2, useCORS: true, allowTaint: true,
+    onclone: (_doc, el) => {
+      el.querySelectorAll('*').forEach(n => {
+        // Normalize spacing to avoid html2canvas artifact with Indic/non-Latin fonts
+        const cs = window.getComputedStyle(n);
+        if (parseFloat(cs.letterSpacing) === 0 || cs.letterSpacing === 'normal') {
+          n.style.letterSpacing = '0.01px';
+        }
+        n.style.wordSpacing = '0px';
+      });
+    }
+  });
   const a = document.createElement('a');
   a.download = `typori-display-${cardId}.png`;
   a.href = canvas.toDataURL('image/png'); a.click();
 }
 
-async function exportPrint(cardId) {
-  const card = document.getElementById(`card-${cardId}`);
-  if (!card) return;
-  const fonts = await getFontsDB();
+async function buildPrintWindow(cardInners, withQA) {
+  const fonts = await getFonts();
   let fontCSS = '';
   for (const f of fonts) {
     if (f.buffer) {
@@ -892,8 +1097,7 @@ async function exportPrint(cardId) {
       fontCSS += `@font-face{font-family:'${slug}';src:url('data:font/truetype;base64,${b64}')}\n`;
     }
   }
-  const gFonts = [...googleFontsLoaded];
-  const gLinks = gFonts.map(n =>
+  const gLinks = [...googleFontsLoaded].map(n =>
     `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(n)}:wght@100;400;700;900&display=swap">`
   ).join('');
   const cs = getComputedStyle(document.documentElement);
@@ -902,6 +1106,16 @@ async function exportPrint(cardId) {
   ).join('');
   const rootCSS = `:root { --orange:#d34000; --ink:#1a1c1c; --ink-mid:#5c4037; --ink-faint:#916f65; --paper:#f7f5f3; --paper-dim:#edeae7; --paper-dimmer:#e2dfdc; --white:#fefcfa; --ff-sans:'Hanken Grotesk',system-ui,sans-serif; --ff-mono:'JetBrains Mono',monospace; ${varCSS} }`;
   const pageCSS = collectPageCSS();
+
+  let body = cardInners.map((html, i) =>
+    `<div${i > 0 ? ' style="page-break-before:always"' : ''}>${html}</div>`
+  ).join('');
+
+  if (withQA) {
+    const needsBreak = body.length > 0;
+    body += `<div${needsBreak ? ' style="page-break-before:always"' : ''}>${fbBuildQAPage(fontCSS)}</div>`;
+  }
+
   const win = window.open('','_blank','width=1000,height=800');
   win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -909,39 +1123,41 @@ async function exportPrint(cardId) {
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     ${gLinks}
     <style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    ${fontCSS}${rootCSS}
-    ${pageCSS}
+    ${pageCSS}${fontCSS}${rootCSS}
     body{margin:0;background:white}
     .preview-tag,.preview-dl,.site-header{display:none!important}
+    .annot-svg{pointer-events:none}
     @media print{@page{size:auto;margin:0}body{margin:0}}
-    </style></head><body>
-    ${card.querySelector('[class^="layout-"], [class*=" layout-"]')?.outerHTML || card.innerHTML}
-    <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),600))<\/script>
+    </style></head><body>${body}
+    <script>window.addEventListener('load',()=>{document.fonts.ready.then(()=>window.print());})<\/script>
   </body></html>`);
   win.document.close();
+}
+
+async function exportPrint(cardId) {
+  const card = document.getElementById(`card-${cardId}`);
+  if (!card) return;
+  const inner = card.querySelector('[class^="layout-"],[class*=" layout-"]') || card;
+  await buildPrintWindow([inner.outerHTML], false);
 }
 
 document.getElementById('preview-grid').addEventListener('click', e => {
   const btn = e.target.closest('.dl-btn'); if (!btn) return;
   btn.dataset.fmt === 'png' ? exportPNG(btn.dataset.card) : exportPrint(btn.dataset.card);
 });
-document.getElementById('export-png-all').onclick = async () => {
-  for (let i = 1; i <= 6; i++) await exportPNG(i);
-};
-document.getElementById('export-pdf-all').onclick = async () => {
-  for (let i = 1; i <= 6; i++) await exportPrint(i);
-};
 
-// ── Init ──────────────────────────────────────────────────────────
+// Per-card print (hover buttons)
+// (bulk export wired in init() below)
+
+// ── Init ──────────────────────────────────────────────────────
 async function init() {
-  loadedFonts = await getFontsDB();
+  loadedFonts = await getFonts();
   for (const f of loadedFonts) {
     if (!f.isGoogle && f.buffer) {
       const slug = f.name.replace(/[^a-zA-Z0-9]/g, '-');
       try { const ff = new FontFace(slug, f.buffer); await ff.load(); document.fonts.add(ff); } catch(e) {}
     }
   }
-  // Re-inject saved Google Fonts
   for (const name of googleFontsLoaded) {
     if (!document.querySelector(`link[href*="${encodeURIComponent(name)}"]`)) {
       const link = document.createElement('link'); link.rel = 'stylesheet';
@@ -950,12 +1166,48 @@ async function init() {
     }
   }
   for (const role of ['title','sub','heading','body']) setupRoleControl(role);
-  // Restore saved text values into inputs
-  for (const role of ['title','sub','heading','body']) {
+  for (const role of ['title','sub','heading','body','note']) {
     const el = document.getElementById(`text-${role}`);
-    if (el) el.value = textContent[role];
+    if (el) el.value = textContent[role] || '';
   }
   applyTexts();
+
+  function getCardInners() {
+    const inners = [];
+    for (let i = 1; i <= 6; i++) {
+      const card = document.getElementById(`card-${i}`); if (!card) continue;
+      const inner = card.querySelector('[class^="layout-"],[class*=" layout-"]') || card;
+      inners.push(inner.outerHTML);
+    }
+    return inners;
+  }
+
+  window.typoriExportPDFQA = () => buildPrintWindow(getCardInners(), true);
+
+  // Export PDF dropdown
+  const pdfMenu = document.getElementById('pdf-dropdown');
+  document.getElementById('btn-pdf-menu')?.addEventListener('click', e => {
+    e.stopPropagation();
+    pdfMenu.style.display = pdfMenu.style.display === 'block' ? 'none' : 'block';
+  });
+  document.addEventListener('click', () => { if (pdfMenu) pdfMenu.style.display = 'none'; });
+  pdfMenu?.addEventListener('click', e => {
+    const btn = e.target.closest('[data-pdf]'); if (!btn) return;
+    pdfMenu.style.display = 'none';
+    if (btn.dataset.pdf === 'layout')  buildPrintWindow(getCardInners(), false);
+    if (btn.dataset.pdf === 'qa')      buildPrintWindow([], true);
+    if (btn.dataset.pdf === 'both')    buildPrintWindow(getCardInners(), true);
+  });
+
+  document.getElementById('export-png-all').onclick = async () => {
+    for (let i = 1; i <= 6; i++) await exportPNG(i);
+  };
+
+  fbInit();
+  // If restoring tester mode, reattach annotation overlays
+  if (window.fb?.mode === 'tester' && window.TyporiAnnotations) {
+    window.TyporiAnnotations.attachToCards();
+  }
 }
 init();
 </script>

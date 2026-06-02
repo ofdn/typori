@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typori — Syllabic Grid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="js/syllabic-templates.js"></script>
+<script src="js/feedback.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --orange: #d34000; --orange-dark: #a93100;
+  --ink: #1a1c1c; --ink-mid: #5c4037; --ink-faint: #916f65;
+  --paper: #f7f5f3; --paper-dim: #edeae7; --paper-dimmer: #e2dfdc;
+  --white: #fefcfa;
+  --ff-sans: 'Hanken Grotesk', system-ui, sans-serif;
+  --ff-mono: 'JetBrains Mono', monospace;
+}
+html { background: var(--paper); color: var(--ink); font-family: var(--ff-sans); }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── Site header ────────────────────────────────────────────── */
+.site-header {
+  position: sticky; top: 0; z-index: 200;
+  background: var(--paper); display: flex; flex-direction: column;
+  border-bottom: 2px solid var(--paper-dimmer);
+}
+.nav-row {
+  display: flex; align-items: center; padding: 0 32px; height: 52px;
+  border-bottom: 1px solid var(--paper-dimmer); gap: 0;
+}
+.wordmark {
+  font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink); text-decoration: none; margin-right: 28px;
+}
+.page-tabs { display: flex; }
+.ptab {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0 18px; height: 52px; display: flex; align-items: center;
+  color: var(--ink-faint); text-decoration: none; border-right: 1px solid var(--paper-dimmer);
+  border-left: 1px solid var(--paper-dimmer); margin-left: -1px; transition: color 100ms;
+}
+.ptab:hover { color: var(--ink); }
+.ptab.active { color: var(--ink); border-bottom: 2px solid var(--orange); }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.export-btn {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 6px 12px; border: 1px solid var(--paper-dimmer);
+  background: transparent; color: var(--ink-faint); cursor: pointer; transition: all 100ms;
+}
+.export-btn:hover { border-color: var(--ink); color: var(--ink); }
+.export-btn.primary { background: var(--orange); border-color: var(--orange); color: var(--white); }
+.export-btn.primary:hover { background: var(--orange-dark); }
+
+/* ── Controls strip ─────────────────────────────────────────── */
+.ctrl-strip {
+  display: flex; align-items: stretch; background: var(--white);
+  border-bottom: 1px solid var(--paper-dimmer); overflow-x: auto;
+  min-height: 40px;
+}
+.ctrl-cell {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 14px; border-right: 1px solid var(--paper-dimmer); flex-shrink: 0;
+}
+.ctrl-cell.grow { flex: 1; }
+.ctrl-label {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-faint); white-space: nowrap;
+}
+.ctrl-select {
+  background: transparent; border: 1px solid var(--paper-dimmer); color: var(--ink);
+  font-family: var(--ff-mono); font-size: 10px; padding: 4px 22px 4px 6px; outline: none; cursor: pointer;
+  -webkit-appearance: none; appearance: none; max-width: 180px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23916f65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 6px center;
+}
+.ctrl-select:focus { border-color: var(--orange); }
+.ctrl-input-num {
+  width: 46px; padding: 4px 6px; border: 1px solid var(--paper-dimmer);
+  font-family: var(--ff-mono); font-size: 11px; color: var(--ink);
+  background: var(--paper); outline: none; text-align: center;
+}
+.ctrl-input-num:focus { border-color: var(--orange); background: var(--white); }
+.ctrl-range { width: 80px; accent-color: var(--orange); cursor: pointer; }
+.ctrl-btn {
+  font-family: var(--ff-mono); font-size: 10px; padding: 5px 10px;
+  border: 1px solid var(--paper-dimmer); background: transparent;
+  color: var(--ink-faint); cursor: pointer; white-space: nowrap; transition: all 100ms;
+}
+.ctrl-btn:hover { border-color: var(--orange); color: var(--orange); }
+.ctrl-btn.active, .ctrl-btn.primary {
+  background: var(--orange); border-color: var(--orange); color: var(--white);
+}
+
+/* ── Layout ──────────────────────────────────────────────────── */
+.app-body {
+  flex: 1; display: grid;
+  grid-template-columns: 260px 1fr;
+  overflow: hidden;
+}
+.sidebar {
+  border-right: 1px solid var(--paper-dimmer); display: flex; flex-direction: column;
+  overflow-y: auto; background: var(--white);
+}
+.sidebar-section {
+  border-bottom: 1px solid var(--paper-dimmer); padding: 16px;
+}
+.sidebar-section-title {
+  font-family: var(--ff-mono); font-size: 9px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--orange);
+  margin-bottom: 10px; display: block;
+}
+.sidebar-field { margin-bottom: 10px; }
+.sidebar-label {
+  font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint);
+  letter-spacing: .06em; text-transform: uppercase; display: block; margin-bottom: 4px;
+}
+.sidebar-textarea {
+  width: 100%; padding: 7px 9px; border: 1px solid var(--paper-dimmer);
+  font-family: var(--ff-mono); font-size: 12px; color: var(--ink);
+  background: var(--paper); outline: none; resize: vertical; line-height: 1.5;
+}
+.sidebar-textarea:focus { border-color: var(--orange); background: var(--white); }
+.template-btns { display: flex; flex-direction: column; gap: 4px; }
+.tpl-btn {
+  font-family: var(--ff-mono); font-size: 10px; padding: 7px 10px;
+  border: 1px solid var(--paper-dimmer); background: transparent;
+  color: var(--ink-faint); cursor: pointer; text-align: left; transition: all 100ms;
+}
+.tpl-btn:hover { border-color: var(--orange); color: var(--orange); background: #fff9f7; }
+.tpl-btn-script {
+  font-size: 13px; margin-right: 8px; vertical-align: middle;
+}
+.font-select-wrap { margin-bottom: 10px; }
+.size-row { display: flex; align-items: center; gap: 8px; }
+.size-range { flex: 1; accent-color: var(--orange); cursor: pointer; }
+.size-num {
+  width: 44px; padding: 3px 5px; border: 1px solid var(--paper-dimmer);
+  font-family: var(--ff-mono); font-size: 11px; text-align: center;
+  background: var(--paper); color: var(--ink); outline: none;
+}
+.generate-btn {
+  width: 100%; padding: 10px; background: var(--ink); color: var(--white);
+  border: none; font-family: var(--ff-sans); font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: background 150ms; letter-spacing: 0.02em;
+}
+.generate-btn:hover { background: var(--orange); }
+
+/* ── Grid canvas ─────────────────────────────────────────────── */
+.grid-canvas { flex: 1; overflow: auto; padding: 32px; background: var(--paper); }
+.grid-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 360px; color: var(--ink-faint); gap: 16px; text-align: center;
+}
+.grid-empty-icon { font-size: 64px; opacity: .4; }
+.grid-empty h3 { font-size: 16px; font-weight: 700; color: var(--ink-mid); }
+.grid-empty p { font-size: 13px; color: var(--ink-faint); max-width: 28ch; }
+
+.syllabic-section { margin-bottom: 40px; }
+.syllabic-section-title {
+  font-family: var(--ff-mono); font-size: 11px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-faint); margin-bottom: 16px;
+}
+
+.syllabic-table {
+  border-collapse: collapse; background: var(--white); box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.syllabic-table th, .syllabic-table td {
+  border: 1px solid var(--paper-dimmer); text-align: center; vertical-align: middle;
+  min-width: 56px;
+}
+.syllabic-table thead th {
+  background: var(--ink); color: var(--white); padding: 8px 12px;
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: .06em;
+  text-transform: uppercase; font-weight: 500;
+}
+.syllabic-table thead th.corner {
+  background: var(--paper); color: var(--ink-faint);
+  font-size: 9px;
+}
+.syllabic-table tbody th {
+  background: var(--paper-dim); color: var(--ink-mid); padding: 8px 12px;
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500;
+}
+.syllabic-table td {
+  background: var(--white); padding: 0;
+  transition: background 100ms;
+}
+.syllabic-table td:hover { background: #fff9f7; }
+
+.grid-cell-inner {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 10px 8px; min-height: 64px; justify-content: center; gap: 4px;
+}
+.grid-syllable {
+  display: block; outline: none;
+  line-height: 1.2; text-align: center;
+}
+.grid-syllable:focus { background: rgba(211,64,0,.08); }
+.grid-unicode {
+  font-family: var(--ff-mono); font-size: 8px; color: var(--ink-faint);
+  letter-spacing: .04em; line-height: 1; word-break: break-all;
+  max-width: 60px; text-align: center;
+}
+
+.conjunct-section { margin-top: 32px; }
+.conjunct-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+.conjunct-cell {
+  border: 1px solid var(--paper-dimmer); background: var(--white);
+  display: flex; flex-direction: column; align-items: center; padding: 10px 8px; min-width: 56px;
+}
+.conjunct-cell:hover { background: #fff9f7; }
+
+/* ── Feedback Panel ──────────────────────────────────────────── */
+#fb-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: 340px;
+  background: var(--white); border-left: 1px solid var(--paper-dimmer);
+  z-index: 500; transform: translateX(100%); transition: transform 280ms cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: -4px 0 20px rgba(0,0,0,.12);
+}
+#fb-panel.open { transform: translateX(0); }
+.fb-hdr { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 52px; border-bottom: 1px solid var(--paper-dimmer); background: var(--ink); flex-shrink: 0; }
+.fb-hdr-title { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--white); font-family: var(--ff-mono); }
+.fb-close { background: none; border: none; color: rgba(255,255,255,.5); font-size: 20px; cursor: pointer; padding: 0 4px; line-height: 1; }
+.fb-close:hover { color: var(--white); }
+.fb-mode-tabs { display: flex; border-bottom: 1px solid var(--paper-dimmer); flex-shrink: 0; background: var(--paper-dim); }
+.fb-mode-tab { flex: 1; padding: 9px 0; font-family: var(--ff-mono); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; border: none; background: transparent; color: var(--ink-faint); cursor: pointer; border-bottom: 2px solid transparent; transition: all 100ms; }
+.fb-mode-tab.active { color: var(--orange); border-bottom-color: var(--orange); background: var(--white); }
+.fb-mode-tab:not(.active):hover { color: var(--ink); }
+#fb-panel-body { flex: 1; overflow-y: auto; padding: 16px; }
+.fb-section { margin-bottom: 18px; }
+.fb-sec-title { font-family: var(--ff-mono); font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--orange); margin-bottom: 9px; display: block; }
+.fb-inp { width: 100%; padding: 7px 10px; border: 1px solid var(--paper-dimmer); font-family: var(--ff-sans); font-size: 12px; color: var(--ink); background: var(--paper); outline: none; margin-bottom: 6px; }
+.fb-inp:focus { border-color: var(--orange); background: var(--white); }
+textarea.fb-inp { resize: vertical; min-height: 44px; }
+.fb-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+.fb-btn { font-family: var(--ff-mono); font-size: 10px; padding: 5px 10px; border: 1px solid var(--paper-dimmer); background: transparent; color: var(--ink-faint); cursor: pointer; flex-shrink: 0; white-space: nowrap; }
+.fb-btn:hover { border-color: var(--orange); color: var(--orange); }
+.fb-btn.p { background: var(--orange); color: var(--white); border-color: var(--orange); }
+.fb-btn.p:hover { background: var(--orange-dark); }
+.fb-btn-full { width: 100%; text-align: center; }
+.fb-q { background: var(--paper); padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--paper-dimmer); }
+.fb-qtext { font-size: 12px; color: var(--ink); margin-bottom: 7px; line-height: 1.4; }
+.fb-qn { font-family: var(--ff-mono); font-size: 10px; color: var(--orange); margin-right: 5px; font-weight: 700; }
+.fb-rating { display: flex; gap: 4px; margin-bottom: 3px; flex-wrap: wrap; }
+.fb-num { width: 28px; height: 28px; border: 1px solid var(--paper-dimmer); background: transparent; font-size: 11px; cursor: pointer; color: var(--ink-faint); font-family: var(--ff-mono); display: flex; align-items: center; justify-content: center; }
+.fb-num.on { background: var(--orange); color: var(--white); border-color: var(--orange); }
+.fb-num:hover:not(.on) { border-color: var(--orange); color: var(--orange); }
+.fb-rlbls { display: flex; justify-content: space-between; font-size: 9px; color: var(--ink-faint); margin-top: 3px; font-family: var(--ff-mono); }
+.fb-choices { display: flex; flex-direction: column; gap: 5px; }
+.fb-choice { font-size: 11px; color: var(--ink); cursor: pointer; display: flex; align-items: baseline; gap: 5px; }
+.fb-txt { width: 100%; padding: 6px 8px; border: 1px solid var(--paper-dimmer); font-family: var(--ff-sans); font-size: 11px; color: var(--ink); background: var(--white); outline: none; resize: vertical; }
+.fb-txt:focus { border-color: var(--orange); }
+.fb-q-edit { background: var(--paper); border: 1px solid var(--paper-dimmer); margin-bottom: 8px; padding: 10px 12px; }
+.fb-q-edit-hdr { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; }
+.fb-type-sel { font-family: var(--ff-mono); font-size: 10px; padding: 3px 18px 3px 6px; border: 1px solid var(--paper-dimmer); background: var(--white); color: var(--ink); outline: none; cursor: pointer; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23916f65'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 5px center; flex-shrink: 0; }
+.fb-q-del { margin-left: auto; background: none; border: none; color: var(--ink-faint); font-size: 14px; cursor: pointer; padding: 0 2px; flex-shrink: 0; line-height: 1; }
+.fb-q-del:hover { color: var(--orange); }
+.fb-q-extra { margin-top: 6px; }
+.fb-q-extra-row { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+.fb-tiny-label { font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint); white-space: nowrap; }
+.fb-num-inp { width: 42px; padding: 4px 6px; border: 1px solid var(--paper-dimmer); font-family: var(--ff-mono); font-size: 11px; text-align: center; background: var(--paper); color: var(--ink); outline: none; }
+.fb-designer-brief { background: var(--paper-dim); padding: 12px; border: 1px solid var(--paper-dimmer); }
+.fb-brief-who { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+.fb-brief-contact { font-size: 11px; color: var(--ink-faint); font-family: var(--ff-mono); margin-bottom: 6px; }
+.fb-brief-text { font-size: 12px; color: var(--ink-mid); line-height: 1.5; }
+.fb-hint { font-size: 10px; color: var(--ink-faint); line-height: 1.5; margin-bottom: 8px; font-family: var(--ff-mono); }
+.fb-divider { height: 1px; background: var(--paper-dimmer); margin: 14px 0; }
+.fb-empty { font-size: 11px; color: var(--ink-faint); font-family: var(--ff-mono); padding: 6px 0; }
+#fb-import-inp, #designer-import-inp { display: none; }
+.fb-locked-notice { background: #fff8e1; border: 1px solid #f0c040; padding: 8px 10px; margin-bottom: 10px; font-size: 10px; color: #5c4000; font-family: var(--ff-mono); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fb-lock-icon { font-size: 13px; flex-shrink: 0; }
+.fb-unlock-btn { margin-left: auto; font-family: var(--ff-mono); font-size: 9px; padding: 3px 8px; border: 1px solid #c09000; background: transparent; color: #5c4000; cursor: pointer; white-space: nowrap; }
+.fb-unlock-btn:hover { background: #5c4000; color: #fff; }
+.fb-q-locked { display: flex; gap: 6px; padding: 7px 0; border-bottom: 1px solid var(--paper-dimmer); font-size: 11px; color: var(--ink-mid); line-height: 1.4; }
+.fb-q-locked:last-child { border-bottom: none; }
+.fb-q-locked-text { flex: 1; }
+.export-wrap { position: relative; }
+.export-dropdown { position: absolute; top: 100%; right: 0; z-index: 300; margin-top: 4px; background: var(--white); border: 1px solid var(--paper-dimmer); box-shadow: 0 4px 16px rgba(0,0,0,.12); min-width: 200px; }
+.export-dropdown button { display: block; width: 100%; text-align: left; padding: 9px 14px; font-family: var(--ff-mono); font-size: 10px; letter-spacing: .04em; text-transform: uppercase; border: none; background: transparent; color: var(--ink-faint); cursor: pointer; border-bottom: 1px solid var(--paper-dimmer); }
+.export-dropdown button:last-child { border-bottom: none; }
+.export-dropdown button:hover { background: var(--paper-dim); color: var(--ink); }
+
+/* ── Footer ─────────────────────────────────────────────────── */
+.site-footer {
+  padding: 14px 32px; display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--paper-dimmer); background: var(--paper); flex-shrink: 0;
+}
+.footer-l, .footer-r {
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.footer-link { color: var(--ink-faint); text-decoration: underline; }
+.footer-link:hover { color: var(--orange); }
+
+@media (max-width: 800px) {
+  .app-body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .sidebar { max-height: 360px; }
+}
+</style>
+</head>
+<body data-page="syllabic">
+
+<header class="site-header">
+  <div class="nav-row">
+    <a class="wordmark" href="index.html">Typori</a>
+    <div class="page-tabs">
+      <a class="ptab" href="display.html">Web Display</a>
+      <a class="ptab" href="print.html">Print</a>
+      <a class="ptab active" href="syllabic.html">Syllabic Grid</a>
+    </div>
+    <div class="nav-right">
+      <button class="export-btn primary" id="btn-export-png">Export PNG</button>
+      <div class="export-wrap">
+        <button class="export-btn" id="btn-pdf-menu">Export PDF ▾</button>
+        <div class="export-dropdown" id="pdf-dropdown" style="display:none">
+          <button data-pdf="grid">Grid only</button>
+          <button data-pdf="qa">Q&amp;A page only</button>
+          <button data-pdf="both">Grid + Q&amp;A (full)</button>
+        </div>
+      </div>
+      <button class="export-btn" id="btn-fb-panel">Feedback ▸</button>
+    </div>
+  </div>
+</header>
+
+<div class="app-body">
+  <!-- Sidebar controls -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-section">
+      <span class="sidebar-section-title">Font</span>
+      <div class="font-select-wrap">
+        <select class="ctrl-select" id="grid-font-select" style="width:100%;max-width:100%">
+          <option value="">— select a loaded font —</option>
+        </select>
+      </div>
+      <div class="sidebar-label">Size</div>
+      <div class="size-row">
+        <input type="range" class="size-range" id="grid-size-range" min="12" max="96" value="32">
+        <input type="number" class="size-num" id="grid-size-num" value="32" min="12" max="96">
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <span class="sidebar-section-title">Consonants</span>
+      <div class="sidebar-field">
+        <label class="sidebar-label" for="ctrl-consonants">One per line or space-separated</label>
+        <textarea class="sidebar-textarea" id="ctrl-consonants" rows="6" placeholder="ক&#10;খ&#10;গ&#10;ঘ …"></textarea>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <span class="sidebar-section-title">Vowel Signs (Matras)</span>
+      <div class="sidebar-field">
+        <label class="sidebar-label" for="ctrl-vowels">One per line; leave blank for base form</label>
+        <textarea class="sidebar-textarea" id="ctrl-vowels" rows="6" placeholder="(blank = base)&#10;া&#10;ি&#10;ী&#10;ু …"></textarea>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <span class="sidebar-section-title">Conjuncts (optional)</span>
+      <div class="sidebar-field">
+        <label class="sidebar-label" for="ctrl-conjuncts">Complex forms, one per line or space-separated</label>
+        <textarea class="sidebar-textarea" id="ctrl-conjuncts" rows="4" placeholder="ক্ষ&#10;জ্ঞ …"></textarea>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <span class="sidebar-section-title">Templates</span>
+      <div class="template-btns">
+        <button class="tpl-btn" data-template="odia"><span class="tpl-btn-script">ଓ</span>Odia Akshara</button>
+        <button class="tpl-btn" data-template="devanagari"><span class="tpl-btn-script">क</span>Devanagari Barakhadi</button>
+        <button class="tpl-btn" data-template="bangla"><span class="tpl-btn-script">ক</span>Bangla Barakhadi</button>
+        <button class="tpl-btn" data-template="tamil"><span class="tpl-btn-script">க</span>Tamil Akshara</button>
+        <button class="tpl-btn" data-template="malayalam"><span class="tpl-btn-script">ക</span>Malayalam Akshara</button>
+        <button class="tpl-btn" data-template="kannada"><span class="tpl-btn-script">ಕ</span>Kannada Akshara</button>
+        <button class="tpl-btn" data-template="latin"><span class="tpl-btn-script">Aa</span>Latin CV Grid</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section" style="padding-bottom:20px">
+      <button class="generate-btn" id="btn-generate">Generate Grid</button>
+    </div>
+
+  </aside>
+
+  <!-- Grid canvas -->
+  <div class="grid-canvas" id="grid-canvas">
+    <div class="grid-empty" id="grid-empty">
+      <div class="grid-empty-icon">ཀ</div>
+      <h3>No grid generated</h3>
+      <p>Enter consonants and vowel signs, then click <strong>Generate Grid</strong>. Or load a template.</p>
+    </div>
+    <div id="grid-output" style="display:none"></div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <span class="footer-l">&copy; 2026 Subhashish Panigrahi / O Foundation</span>
+  <span class="footer-r">v.0.0.2-beta &nbsp;&middot;&nbsp; <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener" class="footer-link">MIT License</a></span>
+</footer>
+
+<!-- Feedback Panel -->
+<div id="fb-panel">
+  <div class="fb-hdr">
+    <span class="fb-hdr-title">Font Feedback</span>
+    <button class="fb-close" id="btn-fb-close" title="Close">✕</button>
+  </div>
+  <div class="fb-mode-tabs">
+    <button class="fb-mode-tab active" data-mode="designer">Designer</button>
+    <button class="fb-mode-tab" data-mode="tester">Tester</button>
+  </div>
+  <div id="fb-panel-body"></div>
+</div>
+
+<script>
+// ── IndexedDB ─────────────────────────────────────────────────
+const DB_NAME = 'typori-fonts', DB_VER = 1, STORE = 'fonts';
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE, { keyPath: 'name' });
+    req.onsuccess = e => res(e.target.result);
+    req.onerror = e => rej(e.target.error);
+  });
+}
+async function getFonts() {
+  const db = await openDB();
+  const tx = db.transaction(STORE, 'readonly');
+  const req = tx.objectStore(STORE).getAll();
+  return new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = rej; });
+}
+
+// ── State ─────────────────────────────────────────────────────
+let gridFontFamily = 'system-ui, -apple-system, sans-serif';
+let gridFontSize = 32;
+let loadedFonts = [];
+
+// ── Font panel ────────────────────────────────────────────────
+function populateFontSelect() {
+  const sel = document.getElementById('grid-font-select');
+  if (!loadedFonts.length) {
+    sel.innerHTML = '<option value="">— no fonts loaded (go to landing page) —</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">— system / inherit —</option>' +
+    loadedFonts.map(f => {
+      const slug = f.name.replace(/[^a-zA-Z0-9]/g, '-');
+      return `<option value="${slug}">${f.name}</option>`;
+    }).join('');
+  if (loadedFonts[0]) {
+    const slug = loadedFonts[0].name.replace(/[^a-zA-Z0-9]/g, '-');
+    sel.value = slug;
+    gridFontFamily = `'${slug}', system-ui, -apple-system, sans-serif`;
+  }
+}
+
+document.getElementById('grid-font-select').onchange = e => {
+  const v = e.target.value;
+  gridFontFamily = v ? `'${v}', system-ui, -apple-system, sans-serif` : 'system-ui, -apple-system, sans-serif';
+  document.querySelectorAll('.grid-syllable').forEach(el => { el.style.fontFamily = gridFontFamily; });
+};
+
+// ── Size slider ───────────────────────────────────────────────
+const sizeRange = document.getElementById('grid-size-range');
+const sizeNum   = document.getElementById('grid-size-num');
+function applyGridSize(v) {
+  gridFontSize = parseInt(v);
+  document.querySelectorAll('.grid-syllable').forEach(el => { el.style.fontSize = v + 'px'; });
+}
+sizeRange.oninput = () => { sizeNum.value = sizeRange.value; applyGridSize(sizeRange.value); };
+sizeNum.oninput   = () => { sizeRange.value = sizeNum.value; applyGridSize(sizeNum.value); };
+
+// ── Helpers ───────────────────────────────────────────────────
+function splitTokens(raw) {
+  return (raw || '').split(/[\s,\n]+/).map(t => t.trim()).filter(Boolean);
+}
+function toUnicode(str) {
+  return [...str].map(ch => 'U+' + ch.codePointAt(0).toString(16).toUpperCase().padStart(4,'0')).join(' ');
+}
+
+function makeSyllableCell(text) {
+  const inner = document.createElement('div');
+  inner.className = 'grid-cell-inner';
+
+  const syl = document.createElement('span');
+  syl.className = 'grid-syllable';
+  syl.contentEditable = true;
+  syl.spellcheck = false;
+  syl.textContent = text;
+  syl.style.fontFamily = gridFontFamily;
+  syl.style.fontSize = gridFontSize + 'px';
+  syl.style.wordSpacing = 'normal';
+  syl.addEventListener('paste', e => {
+    e.preventDefault();
+    document.execCommand('insertText', false, e.clipboardData.getData('text/plain'));
+  });
+
+  const uni = document.createElement('span');
+  uni.className = 'grid-unicode';
+  uni.textContent = toUnicode(text);
+  syl.addEventListener('input', () => { uni.textContent = toUnicode(syl.textContent); });
+
+  inner.appendChild(syl); inner.appendChild(uni);
+  return inner;
+}
+
+// ── Generate grid ─────────────────────────────────────────────
+function generateGrid() {
+  const consonantsRaw = document.getElementById('ctrl-consonants').value;
+  const vowelsRaw     = document.getElementById('ctrl-vowels').value;
+  const conjunctsRaw  = document.getElementById('ctrl-conjuncts').value;
+
+  const consonants = splitTokens(consonantsRaw);
+  const vowelLines = vowelsRaw.split('\n').map(s => s.trim());
+  const vowels = vowelLines.filter((_,i) => i === 0 || vowelLines[i] !== '').map(v => ({
+    label: v === '' ? '—' : v,
+    sign: v,
+  }));
+  const conjuncts = splitTokens(conjunctsRaw);
+
+  if (!consonants.length || !vowels.length) {
+    fbToast('Enter consonants and at least one vowel sign first.', true); return;
+  }
+
+  const empty = document.getElementById('grid-empty');
+  const output = document.getElementById('grid-output');
+  empty.style.display = 'none';
+  output.style.display = '';
+  output.innerHTML = '';
+
+  // ── Barakhadi table ──────────────────────────────────────
+  const section = document.createElement('div');
+  section.className = 'syllabic-section';
+
+  const secTitle = document.createElement('div');
+  secTitle.className = 'syllabic-section-title';
+  secTitle.textContent = 'Barakhadi / Akshara Grid';
+  section.appendChild(secTitle);
+
+  const table = document.createElement('table');
+  table.className = 'syllabic-table';
+
+  // Header
+  const thead = document.createElement('thead');
+  const hrow  = document.createElement('tr');
+  const corner = document.createElement('th');
+  corner.className = 'corner';
+  corner.textContent = '';
+  hrow.appendChild(corner);
+  vowels.forEach(v => {
+    const th = document.createElement('th');
+    th.style.fontFamily = gridFontFamily;
+    th.style.fontSize = Math.min(gridFontSize, 18) + 'px';
+    th.textContent = v.label;
+    hrow.appendChild(th);
+  });
+  thead.appendChild(hrow);
+  table.appendChild(thead);
+
+  // Body
+  const tbody = document.createElement('tbody');
+  consonants.forEach(cons => {
+    const tr = document.createElement('tr');
+    const rowHdr = document.createElement('th');
+    rowHdr.style.fontFamily = gridFontFamily;
+    rowHdr.style.fontSize = Math.min(gridFontSize, 18) + 'px';
+    rowHdr.textContent = cons;
+    tr.appendChild(rowHdr);
+    vowels.forEach(v => {
+      const td = document.createElement('td');
+      td.appendChild(makeSyllableCell(cons + v.sign));
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  section.appendChild(table);
+  output.appendChild(section);
+
+  // ── Conjuncts ────────────────────────────────────────────
+  if (conjuncts.length) {
+    const cSection = document.createElement('div');
+    cSection.className = 'syllabic-section conjunct-section';
+    const ct = document.createElement('div');
+    ct.className = 'syllabic-section-title';
+    ct.textContent = 'Conjuncts / Compounds';
+    cSection.appendChild(ct);
+    const cg = document.createElement('div');
+    cg.className = 'conjunct-grid';
+    conjuncts.forEach(conj => {
+      const cell = document.createElement('div');
+      cell.className = 'conjunct-cell';
+      cell.appendChild(makeSyllableCell(conj));
+      cg.appendChild(cell);
+    });
+    cSection.appendChild(cg);
+    output.appendChild(cSection);
+  }
+
+  fbToast('Grid generated');
+}
+
+document.getElementById('btn-generate').onclick = generateGrid;
+
+// ── Template loading ──────────────────────────────────────────
+function applyTemplate(data) {
+  document.getElementById('ctrl-consonants').value = data.consonants.join('\n');
+  document.getElementById('ctrl-vowels').value = (data.vowelSigns || []).map(v => v.sign).join('\n');
+  document.getElementById('ctrl-conjuncts').value = '';
+  generateGrid();
+  fbToast('Template loaded: ' + data.name);
+}
+
+document.querySelectorAll('[data-template]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.template;
+    // Use embedded data first (works on file:// and offline)
+    const embedded = window.SYLLABIC_TEMPLATES?.[key];
+    if (embedded) { applyTemplate(embedded); return; }
+    // Fallback: fetch from JSON file (GitHub Pages / server)
+    fetch(`templates/syllabic-grid/${key}.json`)
+      .then(r => { if (!r.ok) throw new Error('not found'); return r.json(); })
+      .then(data => applyTemplate(data))
+      .catch(() => fbToast('Template not found: ' + key, true));
+  });
+});
+
+// ── Export PNG ────────────────────────────────────────────────
+document.getElementById('btn-export-png').onclick = async () => {
+  const output = document.getElementById('grid-output');
+  if (!output || output.style.display === 'none') { fbToast('Generate a grid first.', true); return; }
+  await document.fonts.ready;
+  try {
+    const canvas = await html2canvas(output, {
+      scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#f7f5f3',
+      onclone: (_doc, el) => {
+        el.querySelectorAll('*').forEach(n => {
+          const cs = window.getComputedStyle(n);
+          if (parseFloat(cs.letterSpacing) === 0 || cs.letterSpacing === 'normal') {
+            n.style.letterSpacing = '0.01px';
+          }
+          n.style.wordSpacing = '0px';
+        });
+      }
+    });
+    const a = document.createElement('a');
+    a.download = 'typori-syllabic-grid.png';
+    a.href = canvas.toDataURL('image/png'); a.click();
+    fbToast('PNG exported');
+  } catch (e) { fbToast('PNG failed: ' + e.message, true); }
+};
+
+// ── Shared grid PDF builder ────────────────────────────────────
+function uint8ToB64(bytes) {
+  let s = ''; const chunk = 8192;
+  for (let i = 0; i < bytes.length; i += chunk)
+    s += String.fromCharCode(...bytes.subarray(i, Math.min(i+chunk, bytes.length)));
+  return btoa(s);
+}
+
+async function buildGridPDF(includeGrid, includeQA) {
+  const output = document.getElementById('grid-output');
+  if (includeGrid && (!output || output.style.display === 'none')) {
+    fbToast('Generate a grid first.', true); return;
+  }
+  const fonts = await getFonts();
+  let fontCSS = '';
+  for (const f of fonts) {
+    if (f.buffer) {
+      const slug = f.name.replace(/[^a-zA-Z0-9]/g, '-');
+      fontCSS += `@font-face{font-family:'${slug}';src:url('data:font/truetype;base64,${uint8ToB64(new Uint8Array(f.buffer))}')}\n`;
+    }
+  }
+  const gridStyles = `*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    ${fontCSS}
+    body{margin:32pt;background:white;font-family:'Hanken Grotesk',system-ui,sans-serif;color:#1a1c1c}
+    .syllabic-section-title{font-family:'JetBrains Mono',monospace;font-size:9pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#916f65;margin-bottom:12pt}
+    .syllabic-table{border-collapse:collapse;margin-bottom:20pt}
+    .syllabic-table th,.syllabic-table td{border:1px solid #e2dfdc;text-align:center;vertical-align:middle;min-width:36pt;padding:6pt 8pt}
+    .syllabic-table thead th{background:#1a1c1c;color:#fefcfa;font-family:'JetBrains Mono',monospace;font-size:8pt;letter-spacing:.06em;text-transform:uppercase;font-weight:500}
+    .syllabic-table thead th.corner{background:#f7f5f3;color:#916f65;font-size:8pt}
+    .syllabic-table tbody th{background:#edeae7;color:#5c4037;font-family:'JetBrains Mono',monospace;font-size:8pt}
+    .grid-syllable{display:block;line-height:1.2;text-align:center}
+    .grid-unicode{font-family:'JetBrains Mono',monospace;font-size:6pt;color:#916f65;display:block;margin-top:2pt}
+    .conjunct-grid{display:flex;flex-wrap:wrap;gap:4pt}
+    .conjunct-cell{border:1px solid #e2dfdc;padding:6pt 8pt;display:flex;flex-direction:column;align-items:center}
+    @media print{@page{size:auto;margin:0}body{margin:20pt}}`;
+
+  let bodyHTML = '';
+  if (includeGrid) bodyHTML += output.innerHTML;
+  if (includeQA) {
+    const br = includeGrid ? '<div style="page-break-before:always">' : '<div>';
+    bodyHTML += `${br}${fbBuildQAPage(fontCSS)}</div>`;
+  }
+
+  const win = window.open('','_blank','width=1000,height=800');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>${gridStyles}</style></head><body>
+    ${bodyHTML}
+    <script>window.addEventListener('load',()=>{document.fonts.ready.then(()=>window.print());})<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+// ── Init ──────────────────────────────────────────────────────
+async function init() {
+  loadedFonts = await getFonts();
+  for (const f of loadedFonts) {
+    if (!f.isGoogle && f.buffer) {
+      const slug = f.name.replace(/[^a-zA-Z0-9]/g, '-');
+      try { const ff = new FontFace(slug, f.buffer); await ff.load(); document.fonts.add(ff); } catch(e) {}
+    }
+  }
+  populateFontSelect();
+
+  window.typoriExportPDFQA = () => buildGridPDF(true, true);
+
+  // PDF dropdown
+  const pdfMenu = document.getElementById('pdf-dropdown');
+  document.getElementById('btn-pdf-menu')?.addEventListener('click', e => {
+    e.stopPropagation();
+    pdfMenu.style.display = pdfMenu.style.display === 'block' ? 'none' : 'block';
+  });
+  document.addEventListener('click', () => { if (pdfMenu) pdfMenu.style.display = 'none'; });
+  pdfMenu?.addEventListener('click', e => {
+    const btn = e.target.closest('[data-pdf]'); if (!btn) return;
+    pdfMenu.style.display = 'none';
+    if (btn.dataset.pdf === 'grid')  buildGridPDF(true,  false);
+    if (btn.dataset.pdf === 'qa')    buildGridPDF(false, true);
+    if (btn.dataset.pdf === 'both')  buildGridPDF(true,  true);
+  });
+
+  fbInit();
+}
+init();
+</script>
+</body>
+</html>

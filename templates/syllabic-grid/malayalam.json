@@ -1,0 +1,23 @@
+{
+  "name": "Malayalam Akshara",
+  "description": "Basic consonants with vowel signs (matras) — Malayalam script",
+  "consonants": ["ക", "ഖ", "ഗ", "ഘ", "ങ", "ച", "ഛ", "ജ", "ഝ", "ഞ", "ട", "ഠ", "ഡ", "ഢ", "ണ", "ത", "ഥ", "ദ", "ധ", "ന", "പ", "ഫ", "ബ", "ഭ", "മ", "യ", "ര", "ല", "വ", "ശ", "ഷ", "സ", "ഹ", "ള", "ഴ", "റ"],
+  "vowelSigns": [
+    { "label": "—",   "sign": "" },
+    { "label": "ā",   "sign": "ാ" },
+    { "label": "i",   "sign": "ി" },
+    { "label": "ī",   "sign": "ീ" },
+    { "label": "u",   "sign": "ു" },
+    { "label": "ū",   "sign": "ൂ" },
+    { "label": "ṛ",   "sign": "ൃ" },
+    { "label": "e",   "sign": "െ" },
+    { "label": "ē",   "sign": "േ" },
+    { "label": "ai",  "sign": "ൈ" },
+    { "label": "o",   "sign": "ൊ" },
+    { "label": "ō",   "sign": "ോ" },
+    { "label": "au",  "sign": "ൌ" },
+    { "label": "ം",   "sign": "ം" },
+    { "label": "ഃ",   "sign": "ഃ" },
+    { "label": "്",   "sign": "്" }
+  ]
+}

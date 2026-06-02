@@ -1,0 +1,17 @@
+{
+  "name": "Latin CV Grid",
+  "description": "Consonant-vowel syllable grid for Latin script — tests font rendering across basic CV combinations",
+  "consonants": ["b", "c", "d", "f", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "v", "w", "y", "z"],
+  "vowelSigns": [
+    { "label": "a",  "sign": "a" },
+    { "label": "e",  "sign": "e" },
+    { "label": "i",  "sign": "i" },
+    { "label": "o",  "sign": "o" },
+    { "label": "u",  "sign": "u" },
+    { "label": "ā",  "sign": "ā" },
+    { "label": "ē",  "sign": "ē" },
+    { "label": "ī",  "sign": "ī" },
+    { "label": "ō",  "sign": "ō" },
+    { "label": "ū",  "sign": "ū" }
+  ]
+}
