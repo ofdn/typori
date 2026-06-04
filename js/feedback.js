@@ -588,8 +588,65 @@
     }
   }
 
+  // ── Designer preview page for PDF (question list, no responses) ──
+  function buildDesignerQAPage(loadedFontFaceCSS) {
+    const qsHTML = fb.questions.length
+      ? fb.questions.map((q, i) => {
+          let typeLabel = q.type === 'rating'
+            ? `Rating ${q.min||1}–${q.max||5}`
+            : q.type === 'choice' ? `Choice (${(q.options||[]).length} options)` : 'Open text';
+          return `<div class="qap-item">
+            <div class="qap-q"><strong>${i+1}.</strong> ${esc(q.text)}</div>
+            <div style="font-size:8.5pt;color:#916f65;font-family:'JetBrains Mono',monospace;margin-top:3pt">${typeLabel}</div>
+          </div>`;
+        }).join('')
+      : '<p class="qap-empty">No questions defined.</p>';
+    return `<style>
+      @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
+      ${loadedFontFaceCSS || ''}
+      *{box-sizing:border-box;margin:0;padding:0}
+      .qap{font-family:'Hanken Grotesk',system-ui,sans-serif;color:#1a1c1c;padding:36pt 48pt}
+      .qap-stripe{height:4pt;background:#d34000;margin-bottom:20pt}
+      .qap-ttl{font-size:22pt;font-weight:800;letter-spacing:-.03em;margin-bottom:4pt}
+      .qap-subtitle{font-size:11pt;color:#916f65;margin-bottom:18pt}
+      .qap-slbl{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#d34000;border-top:1pt solid #e2dfdc;padding-top:14pt;margin-bottom:12pt;font-family:'JetBrains Mono',monospace}
+      .qap-item{margin-bottom:14pt;padding-bottom:14pt;border-bottom:1pt solid #edeae7}
+      .qap-item:last-child{border-bottom:none}
+      .qap-q{font-size:11.5pt;font-weight:600;margin-bottom:4pt;line-height:1.4}
+      .qap-empty{font-size:10pt;color:#916f65}
+      .qap-person{background:#f7f5f3;padding:12pt 14pt;margin-bottom:6pt}
+      .qap-plbl{font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#916f65;margin-bottom:6pt;font-family:'JetBrains Mono',monospace}
+      .qap-pname{font-size:14pt;font-weight:800;letter-spacing:-.02em;margin-bottom:2pt}
+      .qap-porg{font-size:10pt;color:#5c4037}
+      .qap-pcontact{font-size:9.5pt;color:#916f65;margin-top:3pt}
+      .qap-brief{background:#1a1c1c;color:#fefcfa;padding:12pt 14pt;margin-bottom:20pt}
+      .qap-blbl{font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4);margin-bottom:5pt;font-family:'JetBrains Mono',monospace}
+      .qap-btext{font-size:10.5pt;line-height:1.6;color:rgba(255,255,255,.85)}
+      .notice{font-size:9pt;font-family:'JetBrains Mono',monospace;color:#916f65;border:1pt solid #e2dfdc;padding:8pt 12pt;margin-bottom:20pt}
+    </style>
+    <div class="qap">
+      <div class="qap-stripe"></div>
+      <div class="qap-ttl">Feedback Questions — Designer Preview</div>
+      <div class="qap-subtitle">Typori · Not yet sent to tester</div>
+      <div class="notice">This is a designer-mode export. Tester responses are not included. Switch to Tester mode to export a completed feedback report.</div>
+      ${fb.designer.name || fb.designer.org ? `<div class="qap-person" style="margin-bottom:20pt">
+        <div class="qap-plbl">Designer / Client</div>
+        ${fb.designer.name ? `<div class="qap-pname">${esc(fb.designer.name)}</div>` : ''}
+        ${fb.designer.org  ? `<div class="qap-porg">${esc(fb.designer.org)}</div>`   : ''}
+        ${fb.designer.contact ? `<div class="qap-pcontact">${esc(fb.designer.contact)}</div>` : ''}
+      </div>` : ''}
+      ${fb.designer.instructions ? `<div class="qap-brief">
+        <div class="qap-blbl">Brief for Tester</div>
+        <div class="qap-btext">${esc(fb.designer.instructions)}</div>
+      </div>` : ''}
+      <div class="qap-slbl">Questions (${fb.questions.length})</div>
+      ${qsHTML}
+    </div>`;
+  }
+
   // ── Q&A page for PDF ─────────────────────────────────────────
   function buildQAPage(loadedFontFaceCSS) {
+    if (fb.mode === 'designer') return buildDesignerQAPage(loadedFontFaceCSS);
     const now     = new Date();
     const dateStr = now.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
     const timeStr = now.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});

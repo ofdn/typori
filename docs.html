@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typori — Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --orange: #d34000; --orange-dark: #a93100;
+  --ink: #1a1c1c; --ink-mid: #5c4037; --ink-faint: #916f65;
+  --paper: #f7f5f3; --paper-dim: #edeae7; --paper-dimmer: #e2dfdc;
+  --white: #fefcfa;
+  --ff-sans: 'Hanken Grotesk', system-ui, sans-serif;
+  --ff-mono: 'JetBrains Mono', monospace;
+}
+html { background: var(--paper); color: var(--ink); font-family: var(--ff-sans); }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── Header ─────────────────────────────────────────────────── */
+.site-header {
+  position: sticky; top: 0; z-index: 200;
+  background: var(--paper); display: flex; flex-direction: column;
+  border-bottom: 2px solid var(--paper-dimmer);
+}
+.nav-row {
+  display: flex; align-items: center; padding: 0 32px; height: 52px;
+  border-bottom: 1px solid var(--paper-dimmer); gap: 0;
+}
+.wordmark {
+  font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink); text-decoration: none; margin-right: 28px;
+}
+.page-tabs { display: flex; }
+.ptab {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0 18px; height: 52px; display: flex; align-items: center;
+  color: var(--ink-faint); text-decoration: none; border-right: 1px solid var(--paper-dimmer);
+  border-left: 1px solid var(--paper-dimmer); margin-left: -1px; transition: color 100ms;
+}
+.ptab:hover { color: var(--ink); }
+.ptab.active { color: var(--ink); border-bottom: 2px solid var(--orange); }
+
+/* ── Docs layout ─────────────────────────────────────────────── */
+.docs-wrap {
+  flex: 1; max-width: 860px; width: 100%; margin: 0 auto;
+  padding: 48px 32px 80px;
+}
+.docs-hero {
+  margin-bottom: 56px;
+}
+.docs-eyebrow {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--orange); margin-bottom: 12px;
+}
+.docs-title {
+  font-size: 42px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1;
+  margin-bottom: 16px;
+}
+.docs-lead {
+  font-size: 17px; color: var(--ink-mid); line-height: 1.6; max-width: 600px;
+}
+
+/* Sections */
+.docs-section { margin-bottom: 56px; }
+.docs-sec-label {
+  font-family: var(--ff-mono); font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--orange);
+  border-bottom: 1px solid var(--paper-dimmer); padding-bottom: 8px; margin-bottom: 24px;
+}
+.docs-sec-title {
+  font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px;
+}
+.docs-body {
+  font-size: 14px; color: var(--ink-mid); line-height: 1.65;
+}
+.docs-body p { margin-bottom: 10px; }
+.docs-body ul { padding-left: 18px; margin-bottom: 10px; }
+.docs-body li { margin-bottom: 5px; }
+.docs-body strong { color: var(--ink); font-weight: 600; }
+.docs-body code {
+  font-family: var(--ff-mono); font-size: 11px; background: var(--paper-dim);
+  padding: 1px 5px; border: 1px solid var(--paper-dimmer);
+}
+
+/* Page cards grid */
+.page-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 8px; }
+.page-card {
+  border: 1px solid var(--paper-dimmer); background: var(--white);
+  padding: 18px 20px; text-decoration: none; color: inherit; transition: border-color 80ms;
+}
+.page-card:hover { border-color: var(--orange); }
+.page-card-tag {
+  font-family: var(--ff-mono); font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--orange); margin-bottom: 6px;
+}
+.page-card-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.page-card-desc { font-size: 12px; color: var(--ink-faint); line-height: 1.5; }
+
+/* Workflow steps */
+.workflow-steps { counter-reset: steps; display: flex; flex-direction: column; gap: 0; }
+.workflow-step {
+  display: flex; gap: 16px; padding: 16px 0;
+  border-bottom: 1px solid var(--paper-dimmer);
+}
+.workflow-step:last-child { border-bottom: none; }
+.step-num {
+  counter-increment: steps;
+  font-family: var(--ff-mono); font-size: 11px; font-weight: 700; color: var(--orange);
+  flex-shrink: 0; width: 24px; padding-top: 1px;
+}
+.step-num::before { content: counter(steps) "."; }
+.step-body { font-size: 13px; color: var(--ink-mid); line-height: 1.55; }
+.step-body strong { color: var(--ink); }
+
+/* Contributors table */
+.contrib-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--paper-dimmer); }
+@media (max-width: 600px) { .contrib-grid { grid-template-columns: 1fr; } }
+.contrib-col { padding: 20px 24px; }
+.contrib-col + .contrib-col { border-left: 1px solid var(--paper-dimmer); }
+.contrib-col-label {
+  font-family: var(--ff-mono); font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--orange); margin-bottom: 14px;
+}
+.contrib-list { list-style: none; padding: 0; margin: 0; }
+.contrib-list li {
+  font-size: 13px; color: var(--ink); padding: 5px 0;
+  border-bottom: 1px solid var(--paper-dimmer); display: flex; align-items: baseline; gap: 8px;
+}
+.contrib-list li:last-child { border-bottom: none; }
+.contrib-role {
+  font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint);
+  letter-spacing: 0.04em; text-transform: uppercase; flex-shrink: 0;
+}
+
+/* Attribution notice */
+.attribution-box {
+  background: var(--paper-dim); border: 1px solid var(--paper-dimmer);
+  padding: 20px 24px; margin-top: 24px; font-size: 13px; color: var(--ink-mid); line-height: 1.6;
+}
+.attribution-box a { color: var(--orange); }
+.attribution-box a:hover { color: var(--orange-dark); }
+
+/* Footer */
+.site-footer {
+  padding: 14px 32px; display: flex; align-items: center;
+  border-top: 1px solid var(--paper-dimmer); background: var(--paper);
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-faint); flex-shrink: 0;
+}
+
+@media (max-width: 700px) { .docs-wrap { padding: 32px 16px 64px; } .nav-row { padding: 0 16px; } .docs-title { font-size: 30px; } }
+</style>
+</head>
+<body data-page="docs">
+
+<header class="site-header">
+  <div class="nav-row">
+    <a class="wordmark" href="index.html">Typori</a>
+    <div class="page-tabs">
+      <a class="ptab" href="display.html">Web Display</a>
+      <a class="ptab" href="print.html">Print</a>
+      <a class="ptab" href="syllabic.html">Syllabic Grid</a>
+      <a class="ptab" href="specimen.html">Specimen</a>
+      <a class="ptab active" href="docs.html">Docs</a>
+    </div>
+  </div>
+</header>
+
+<div class="docs-wrap">
+
+  <div class="docs-hero">
+    <p class="docs-eyebrow">Documentation</p>
+    <h1 class="docs-title">Typori Font Testing Tool</h1>
+    <p class="docs-lead">Typori is a browser-based font proofing and feedback tool designed for type designers working with Odia, Devanagari, and other Indic scripts alongside Latin. Load any font, test it across realistic layouts, collect structured feedback from testers, and annotate directly on the page.</p>
+  </div>
+
+  <!-- ── Pages overview ─────────────────────────────────────── -->
+  <div class="docs-section">
+    <p class="docs-sec-label">Pages</p>
+    <h2 class="docs-sec-title">What each page does</h2>
+    <div class="page-cards">
+      <a class="page-card" href="display.html">
+        <div class="page-card-tag">Web Display</div>
+        <div class="page-card-title">Web Display</div>
+        <div class="page-card-desc">Six realistic web layouts (hero, article, dark, pricing, app, mobile). Test font roles: Title, Subtitle, Heading, Body, Note.</div>
+      </a>
+      <a class="page-card" href="print.html">
+        <div class="page-card-tag">Print</div>
+        <div class="page-card-title">Print</div>
+        <div class="page-card-desc">Six print-oriented layouts (newspaper, magazine, book, letter, poster, sidebar). Optimised for PDF export at press sizes.</div>
+      </a>
+      <a class="page-card" href="syllabic.html">
+        <div class="page-card-tag">Syllabic Grid</div>
+        <div class="page-card-title">Syllabic Grid</div>
+        <div class="page-card-desc">Consonant × vowel grid for Odia, Devanagari, Bengali, Tamil, Malayalam, Kannada, Telugu, and Latin. Useful for checking matras and conjunct forming.</div>
+      </a>
+      <a class="page-card" href="specimen.html">
+        <div class="page-card-tag">Specimen</div>
+        <div class="page-card-title">Specimen</div>
+        <div class="page-card-desc">Eight specimen views: Waterfall, Lettering, Words, Text, Hinting, Characters, Strings, and OpenType feature comparison.</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- ── Loading fonts ──────────────────────────────────────── -->
+  <div class="docs-section">
+    <p class="docs-sec-label">Getting started</p>
+    <h2 class="docs-sec-title">Loading your font</h2>
+    <div class="docs-body">
+      <p>Open <strong>index.html</strong> (the landing page) and drag your font file onto the drop zone, or click <strong>Load Font</strong>. Typori stores font data in the browser's IndexedDB so it persists across page reloads and across all tabs in the same origin.</p>
+      <p>You can also load <strong>Google Fonts</strong> by name from any page's toolbar — type the family name and click Load. Previously loaded Google Fonts are remembered in localStorage.</p>
+      <p>The font selector in every page's toolbar switches between <strong>Loaded</strong> (your custom fonts), <strong>System</strong> (OS fonts), and <strong>Google</strong> fonts.</p>
+    </div>
+  </div>
+
+  <!-- ── Specimen guide ─────────────────────────────────────── -->
+  <div class="docs-section">
+    <p class="docs-sec-label">Specimen page</p>
+    <h2 class="docs-sec-title">Specimen tabs explained</h2>
+    <div class="docs-body">
+      <ul>
+        <li><strong>Waterfall</strong> — one text string shown at all active sizes (use Min/Max sliders to filter the range). Click any line to edit the text.</li>
+        <li><strong>Lettering</strong> — large alphabet display: uppercase, lowercase, numerals, punctuation at a single size. Use the slider to scale. Adapted from Pablo Impallari's Font Testing Page lettering sheet.</li>
+        <li><strong>Words</strong> — a set of capitalised test words shown at sizes from 96px down to 12px, overflowing on one line so you can judge colour and spacing at a glance.</li>
+        <li><strong>Text</strong> — paragraph text in a two-column layout at sizes 20px → 11px. Checks texture and readability at reading sizes.</li>
+        <li><strong>Hinting</strong> — text at fine pixel increments (48px, 28px, then 24 → 9px). Also shows the browser User-Agent string for reference when testing hinting behaviour across rendering engines.</li>
+        <li><strong>Characters</strong> — Unicode codepoint grid for Basic Latin, Latin Ext, Numerals, Punctuation, and all major Indic scripts. Click any cell to copy the character.</li>
+        <li><strong>Strings</strong> — editable test strings grouped by script and function: pangrams, kerning pairs, spacing, Odia, Devanagari (including Marathi pangram and character groups from Bhagwat and Girish Dalvi), and other South Asian scripts.</li>
+        <li><strong>OpenType</strong> — side-by-side on/off comparison for each OpenType feature. Toggle features from here or from the toolbar panel.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── Feedback workflow ───────────────────────────────────── -->
+  <div class="docs-section">
+    <p class="docs-sec-label">Feedback workflow</p>
+    <h2 class="docs-sec-title">Designer → Tester feedback loop</h2>
+    <div class="docs-body" style="margin-bottom:16px">
+      <p>The Feedback panel (▸ button, top-right on any page except the landing page) supports a two-persona workflow. State is shared across all Typori pages via the browser's localStorage, so you can move between Web Display, Print, and Syllabic Grid without losing your work.</p>
+    </div>
+    <div class="workflow-steps">
+      <div class="workflow-step">
+        <span class="step-num"></span>
+        <div class="step-body"><strong>Designer sets up questions.</strong> Switch to Designer mode. Enter your name, organisation, and a brief for the tester. Add questions (text, rating 1–10, or multiple-choice). Load defaults for a standard set.</div>
+      </div>
+      <div class="workflow-step">
+        <span class="step-num"></span>
+        <div class="step-body"><strong>Export JSON.</strong> Click <em>Export JSON for Tester →</em>. Send this .json file to your tester alongside the font file.</div>
+      </div>
+      <div class="workflow-step">
+        <span class="step-num"></span>
+        <div class="step-body"><strong>Tester imports and responds.</strong> The tester opens Typori, switches to Tester mode, imports the JSON, loads the font, and answers the questions. In Tester mode, annotation overlays become active — they can draw freehand or box-select directly on layout cards to mark specific issues.</div>
+      </div>
+      <div class="workflow-step">
+        <span class="step-num"></span>
+        <div class="step-body"><strong>Export PDF.</strong> Use <em>Export PDF ▾ → Both</em> to get the layout pages plus the Q&amp;A report. Annotations are embedded on their respective layout pages in the PDF, and also collected in the Q&amp;A appendix as vector drawings.</div>
+      </div>
+      <div class="workflow-step">
+        <span class="step-num"></span>
+        <div class="step-body"><strong>Designer reviews.</strong> The tester sends back the PDF (and optionally the responses JSON). If the designer exports a PDF while in Designer mode, they get a <em>Questions Preview</em> page listing the questions without responses — useful for checking the questionnaire before sending.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Annotations ────────────────────────────────────────── -->
+  <div class="docs-section">
+    <p class="docs-sec-label">Annotations</p>
+    <h2 class="docs-sec-title">Drawing on the layout</h2>
+    <div class="docs-body">
+      <p>Annotations are available in <strong>Tester mode only</strong> on the Web Display and Print pages. When Tester mode is active, an SVG canvas is placed over each layout card. Use the Pen tool for freehand strokes or the Box tool to draw rectangles around problem areas. Three colours are available: orange, black, and blue.</p>
+      <p>Annotation strokes are stored as normalised coordinates (relative 0–1 values), so they scale correctly if the card is resized.</p>
+      <p>When you export a PDF, annotations appear <strong>on the layout page they belong to</strong> as well as in the Q&amp;A appendix. The appendix renders each annotated card's strokes as an inline SVG image so the marks survive printing.</p>
+      <p>Use <em>Clear all</em> in the Annotations section of the panel to erase all annotations.</p>
+    </div>
+  </div>
+
+  <!-- ── Export ─────────────────────────────────────────────── -->
+  <div class="docs-section">
+    <p class="docs-sec-label">Export</p>
+    <h2 class="docs-sec-title">Export options</h2>
+    <div class="docs-body">
+      <ul>
+        <li><strong>Export PDF ▾ → Layout only</strong> — prints just the layout cards (with any annotations embedded). No feedback appendix.</li>
+        <li><strong>Export PDF ▾ → Q&amp;A only</strong> — prints the feedback report page. In Designer mode this shows a questions preview; in Tester mode it shows all responses and annotations.</li>
+        <li><strong>Export PDF ▾ → Both</strong> — layout cards followed by the feedback report, all in one print job.</li>
+        <li><strong>Export PNG</strong> — renders each card individually to PNG at 2× resolution using html2canvas. Works for sharing individual layouts without opening a print dialog.</li>
+        <li><strong>Specimen → Print / Export ▾</strong> — opens the browser's print dialog for the current specimen view. Use your browser's "Save as PDF" option to export a PDF specimen sheet.</li>
+      </ul>
+      <p>PDF export uses <code>window.print()</code> (the browser's native print engine), not a PDF library. Custom fonts loaded via IndexedDB are embedded as base64 data-URIs so they travel with the print window.</p>
+    </div>
+  </div>
+
+  <!-- ── Acknowledgements ────────────────────────────────────── -->
+  <div class="docs-section">
+    <p class="docs-sec-label">Acknowledgements</p>
+    <h2 class="docs-sec-title">Contributors &amp; Credits</h2>
+
+    <div class="contrib-grid">
+      <div class="contrib-col">
+        <p class="contrib-col-label">Typori</p>
+        <ul class="contrib-list">
+          <li>Subhashish Panigrahi <span class="contrib-role">Creator, design &amp; development</span></li>
+          <li>Nasim Ali <span class="contrib-role">Input &amp; feedback</span></li>
+        </ul>
+      </div>
+      <div class="contrib-col">
+        <p class="contrib-col-label">Font Testing Page</p>
+        <ul class="contrib-list">
+          <li>Pablo Impallari <span class="contrib-role">Creator</span></li>
+          <li>Dave Crossland <span class="contrib-role">Contributor</span></li>
+          <li>Erin McLaughlin <span class="contrib-role">Contributor</span></li>
+          <li>Santhosh Thottingal <span class="contrib-role">Contributor</span></li>
+          <li>Fil Zembowicz <span class="contrib-role">Contributor</span></li>
+          <li>Denis Moyogo Jacquerye <span class="contrib-role">Contributor</span></li>
+          <li>Simon Cozens <span class="contrib-role">Contributor</span></li>
+          <li>Alexei Vanyashin <span class="contrib-role">Contributor</span></li>
+          <li>Adrien Tétar <span class="contrib-role">Contributor</span></li>
+          <li>Adolfo Jayme-Barrientos <span class="contrib-role">Contributor</span></li>
+          <li>Meir Sadan <span class="contrib-role">Contributor</span></li>
+          <li>Wei H <span class="contrib-role">Contributor</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="attribution-box">
+      <strong>Font Testing Page</strong> — The Waterfall, Lettering, Words, Text, Hinting, and Strings specimen views in Typori draw on content and ideas from Pablo Impallari's
+      <a href="https://github.com/impallari/Font-Testing-Page" target="_blank" rel="noopener">Font Testing Page</a>
+      (MIT licence). Devanagari character groups are adapted from content originally contributed to Font Testing Page by Girish Dalvi (Ek Type) and sourced from Bhagwat's and Naik's graphical similarity groupings.
+    </div>
+  </div>
+
+  <!-- ── Technical notes ─────────────────────────────────────── -->
+  <div class="docs-section">
+    <p class="docs-sec-label">Technical notes</p>
+    <h2 class="docs-sec-title">How it works</h2>
+    <div class="docs-body">
+      <ul>
+        <li><strong>Static site</strong> — no server, no build step. Runs on GitHub Pages or from a local <code>file://</code> URL.</li>
+        <li><strong>Font storage</strong> — custom fonts are stored in IndexedDB (<code>typori-fonts</code>) as ArrayBuffers. They are injected as base64 <code>@font-face</code> rules in the print window so PDFs include the font without needing network access.</li>
+        <li><strong>Feedback state</strong> — stored in <code>localStorage</code> under the key <code>typori-fb-v2</code>. Shared across all pages in the same origin. Includes question definitions, responses, annotation stroke data, and designer/tester info.</li>
+        <li><strong>Annotations</strong> — SVG strokes are stored as normalised point arrays (values 0–1 relative to card dimensions). They are re-rendered at display time and serialised to base64 SVG images in the PDF appendix.</li>
+        <li><strong>PNG export</strong> — uses <code>html2canvas</code> at 2× scale. A <code>letterSpacing: '0.01px'</code> normalisation is applied on clone to prevent spacing artifacts with Indic fonts.</li>
+        <li><strong>Indic shaping</strong> — Typori relies on the browser's built-in OpenType shaping engine (HarfBuzz in Chrome/Firefox). Shaping features (akhn, blwf, half, pstf, etc.) are always active and are not exposed as toggles.</li>
+      </ul>
+    </div>
+  </div>
+
+</div><!-- /docs-wrap -->
+
+<footer class="site-footer">
+  <span>&copy; 2026 Subhashish Panigrahi / O Foundation</span>
+</footer>
+
+</body>
+</html>

@@ -206,14 +206,32 @@
   function getTool()  { return activeTool; }
   function getColor() { return activeColor; }
 
-  // Return annotation summary text for the Q&A page
+  // Return annotation summary for the Q&A page — each card's strokes rendered as inline SVG
   function annotationSummaryHTML() {
     const anns = getAnnotations();
     const entries = Object.entries(anns).filter(([,v]) => v.length > 0);
     if (!entries.length) return '';
-    return entries.map(([cardId, strokes]) =>
-      `<div class="qap-ann-card"><span class="qap-ann-id">${cardId}</span> — ${strokes.length} annotation${strokes.length > 1 ? 's' : ''}</div>`
-    ).join('');
+    const W = 480, H = 280;
+    return entries.map(([cardId, strokes]) => {
+      const paths = strokes.map(s => {
+        if (s.tool === 'pen') {
+          const d = s.pts.map(([nx,ny], i) =>
+            (i === 0 ? `M${(nx*W).toFixed(1)},${(ny*H).toFixed(1)}` : `L${(nx*W).toFixed(1)},${(ny*H).toFixed(1)}`)
+          ).join(' ');
+          return `<path d="${d}" stroke="${s.color}" stroke-width="${s.width||2.5}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+        } else if (s.tool === 'rect' && s.pts.length >= 2) {
+          const [nx1,ny1] = s.pts[0], [nx2,ny2] = s.pts[s.pts.length-1];
+          const x = (Math.min(nx1,nx2)*W).toFixed(1), y = (Math.min(ny1,ny2)*H).toFixed(1);
+          const w = (Math.abs(nx2-nx1)*W).toFixed(1), h = (Math.abs(ny2-ny1)*H).toFixed(1);
+          return `<rect x="${x}" y="${y}" width="${w}" height="${h}" stroke="${s.color}" stroke-width="${s.width||2.5}" fill="${s.color}22"/>`;
+        }
+        return '';
+      }).join('');
+      return `<div style="margin-bottom:12pt">
+        <div style="font-size:9.5pt;color:#5c4037;font-family:'JetBrains Mono',monospace;margin-bottom:4pt">${cardId} — ${strokes.length} stroke${strokes.length > 1 ? 's' : ''}</div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" style="display:block;border:1px solid #e2dfdc;background:#fefcfa;max-width:100%">${paths}</svg>
+      </div>`;
+    }).join('');
   }
 
   window.TyporiAnnotations = {

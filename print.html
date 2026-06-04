@@ -370,6 +370,8 @@ textarea.fb-inp { resize: vertical; min-height: 44px; }
       <a class="ptab" href="display.html">Web Display</a>
       <a class="ptab active" href="print.html">Print</a>
       <a class="ptab" href="syllabic.html">Syllabic Grid</a>
+      <a class="ptab" href="specimen.html">Specimen</a>
+      <a class="ptab" href="docs.html">Docs</a>
     </div>
     <div class="nav-right">
       <label class="ctrl-label" style="margin:0;font-family:var(--ff-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)" for="page-size">Page</label>
@@ -954,7 +956,11 @@ async function init() {
     for (let i = 1; i <= 6; i++) {
       const card = document.getElementById(`card-${i}`); if (!card) continue;
       const inner = card.querySelector('[class^="layout-"],[class*=" layout-"]') || card;
-      inners.push(inner.outerHTML);
+      const annotSvg = card.querySelector('.annot-svg');
+      let html = `<div style="position:relative">` + inner.outerHTML;
+      if (annotSvg) html += annotSvg.outerHTML;
+      html += `</div>`;
+      inners.push(html);
     }
     return inners;
   }

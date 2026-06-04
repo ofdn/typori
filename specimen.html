@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typori — Specimen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="js/annotations.js"></script>
+<script src="js/feedback.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --orange: #d34000; --orange-dark: #a93100;
+  --ink: #1a1c1c; --ink-mid: #5c4037; --ink-faint: #916f65;
+  --paper: #f7f5f3; --paper-dim: #edeae7; --paper-dimmer: #e2dfdc;
+  --white: #fefcfa;
+  --ff-sans: 'Hanken Grotesk', system-ui, sans-serif;
+  --ff-mono: 'JetBrains Mono', monospace;
+  --font-preview: system-ui, sans-serif;
+  --font-features: normal;
+}
+html { background: var(--paper); color: var(--ink); font-family: var(--ff-sans); }
+body { min-height: 100vh; display: flex; flex-direction: column; transition: padding-right 280ms; }
+body.fb-open { padding-right: 340px; }
+
+/* ── Header ─────────────────────────────────────────────────── */
+.site-header {
+  position: sticky; top: 0; z-index: 200;
+  background: var(--paper); display: flex; flex-direction: column;
+  border-bottom: 2px solid var(--paper-dimmer);
+}
+.nav-row {
+  display: flex; align-items: center; padding: 0 32px; height: 52px;
+  border-bottom: 1px solid var(--paper-dimmer); gap: 0;
+}
+.wordmark {
+  font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink); text-decoration: none; margin-right: 28px;
+}
+.page-tabs { display: flex; }
+.ptab {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0 18px; height: 52px; display: flex; align-items: center;
+  color: var(--ink-faint); text-decoration: none; border-right: 1px solid var(--paper-dimmer);
+  border-left: 1px solid var(--paper-dimmer); margin-left: -1px; transition: color 100ms;
+}
+.ptab:hover { color: var(--ink); }
+.ptab.active { color: var(--ink); border-bottom: 2px solid var(--orange); }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+.ctrl-row {
+  display: flex; align-items: stretch; border-bottom: 1px solid var(--paper-dimmer);
+  background: var(--white); min-height: 40px; overflow-x: auto;
+}
+.ctrl-cell {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 12px; border-right: 1px solid var(--paper-dimmer); flex-shrink: 0;
+}
+.ctrl-cell.grow { flex: 1; }
+.ctrl-label {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-faint); white-space: nowrap;
+}
+.ctrl-input {
+  background: transparent; border: 1px solid transparent; color: var(--ink);
+  font-family: var(--ff-sans); font-size: 12px; padding: 4px 6px; outline: none; min-width: 0;
+}
+.ctrl-input:focus { border-color: var(--paper-dimmer); background: var(--paper); }
+.ctrl-input.sm { width: 80px; }
+.ctrl-select {
+  background: transparent; border: 1px solid var(--paper-dimmer); color: var(--ink);
+  font-family: var(--ff-mono); font-size: 10px; padding: 4px 20px 4px 6px; outline: none; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23916f65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 6px center;
+}
+.ctrl-select:focus { border-color: var(--orange); }
+.ctrl-btn {
+  font-family: var(--ff-mono); font-size: 10px; padding: 4px 10px;
+  border: 1px solid var(--paper-dimmer); background: transparent; color: var(--ink-faint);
+  cursor: pointer; white-space: nowrap;
+}
+.ctrl-btn:hover { border-color: var(--orange); color: var(--orange); }
+.ctrl-btn.active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+
+/* OT panel */
+.ot-panel {
+  background: var(--paper-dim); border-bottom: 1px solid var(--paper-dimmer);
+  padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center;
+}
+.ot-panel[hidden] { display: none; }
+.ot-feat-check {
+  display: flex; align-items: center; gap: 5px; cursor: pointer;
+  font-family: var(--ff-mono); font-size: 10px; color: var(--ink-mid);
+  user-select: none;
+}
+.ot-feat-check input[type="checkbox"] {
+  width: 12px; height: 12px; margin: 0; accent-color: var(--orange); cursor: pointer;
+}
+.ot-feat-check:hover { color: var(--ink); }
+
+/* export btn */
+.export-btn {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 6px 12px; border: 1px solid var(--paper-dimmer);
+  background: transparent; color: var(--ink-faint); cursor: pointer; transition: all 100ms;
+}
+.export-btn:hover { border-color: var(--ink); color: var(--ink); }
+
+/* ── Specimen tab bar ────────────────────────────────────────── */
+.spec-tab-bar {
+  display: flex; background: var(--white); border-bottom: 2px solid var(--paper-dimmer);
+  padding: 0 32px; overflow-x: auto; flex-shrink: 0;
+}
+.spec-tab {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0 20px; height: 40px; border: none; background: transparent;
+  color: var(--ink-faint); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px;
+  white-space: nowrap; transition: color 100ms;
+}
+.spec-tab:hover { color: var(--ink); }
+.spec-tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+/* ── Main canvas ─────────────────────────────────────────────── */
+#spec-main { flex: 1; padding: 32px; max-width: 1400px; width: 100%; margin: 0 auto; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── Section header ──────────────────────────────────────────── */
+.sec-title {
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--orange); margin-bottom: 16px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--paper-dimmer);
+}
+.sec-subtitle {
+  font-family: var(--ff-mono); font-size: 9px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-faint); margin-bottom: 10px;
+}
+
+/* ── Waterfall ───────────────────────────────────────────────── */
+.waterfall-controls {
+  display: flex; gap: 16px; align-items: center; margin-bottom: 24px; flex-wrap: wrap;
+}
+.wf-ctrl { display: flex; align-items: center; gap: 6px; }
+.wf-ctrl label { font-family: var(--ff-mono); font-size: 10px; color: var(--ink-faint); white-space: nowrap; }
+.wf-ctrl input[type="range"] { width: 90px; accent-color: var(--orange); }
+.wf-ctrl span { font-family: var(--ff-mono); font-size: 10px; color: var(--ink); min-width: 32px; }
+.wf-text-input {
+  width: 100%; padding: 8px 12px; border: 1px solid var(--paper-dimmer);
+  background: var(--white); color: var(--ink); font-size: 14px; outline: none;
+  font-family: var(--font-preview); font-feature-settings: var(--font-features);
+  margin-bottom: 24px;
+}
+.wf-text-input:focus { border-color: var(--orange); }
+
+.waterfall { border-top: 1px solid var(--paper-dimmer); }
+.wf-line {
+  display: flex; align-items: baseline; gap: 16px;
+  padding: 6px 0; border-bottom: 1px solid var(--paper-dimmer);
+}
+.wf-size-label {
+  font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint);
+  width: 44px; text-align: right; flex-shrink: 0; letter-spacing: 0.04em;
+}
+.wf-text {
+  font-family: var(--font-preview); font-feature-settings: var(--font-features);
+  line-height: 1.15; outline: none; flex: 1; color: var(--ink); word-break: break-word;
+}
+.wf-text:focus { background: #fffbf9; }
+.wf-text[contenteditable="true"] { cursor: text; }
+
+/* ── Characters ──────────────────────────────────────────────── */
+.script-tabs {
+  display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 20px;
+}
+.script-tab {
+  font-family: var(--ff-mono); font-size: 9px; padding: 4px 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; border: 1px solid var(--paper-dimmer); background: transparent;
+  color: var(--ink-faint); cursor: pointer; transition: all 80ms;
+}
+.script-tab.active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+.script-tab:hover:not(.active) { border-color: var(--orange); color: var(--orange); }
+
+.char-grid { display: flex; flex-wrap: wrap; gap: 3px; }
+.char-cell {
+  width: 56px; height: 56px; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; border: 1px solid var(--paper-dimmer); background: var(--white);
+  cursor: pointer; position: relative; transition: border-color 80ms;
+}
+.char-cell:hover { border-color: var(--orange); }
+.char-cell.copied { background: #fff3ee; border-color: var(--orange); }
+.char-glyph {
+  font-family: var(--font-preview); font-feature-settings: var(--font-features);
+  font-size: 28px; line-height: 1; user-select: none;
+}
+.char-code {
+  font-family: var(--ff-mono); font-size: 7px; color: var(--ink-faint); margin-top: 3px;
+}
+
+/* ── Strings ─────────────────────────────────────────────────── */
+.strings-col { column-count: 1; }
+.string-section { margin-bottom: 32px; }
+.string-item { padding: 10px 0; border-bottom: 1px solid var(--paper-dimmer); display: flex; gap: 16px; align-items: baseline; }
+.string-lang {
+  font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint); letter-spacing: 0.06em;
+  text-transform: uppercase; width: 110px; flex-shrink: 0;
+}
+.string-text {
+  font-family: var(--font-preview); font-feature-settings: var(--font-features);
+  line-height: 1.5; outline: none; flex: 1; color: var(--ink); cursor: text;
+}
+.string-text:focus { background: #fffbf9; }
+
+/* size controls in strings */
+.size-ctrl {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.size-btn {
+  font-family: var(--ff-mono); font-size: 9px; padding: 3px 8px;
+  border: 1px solid var(--paper-dimmer); background: transparent; color: var(--ink-faint);
+  cursor: pointer;
+}
+.size-btn.active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+
+/* ── Words / Text / Hinting ─────────────────────────────────── */
+.sized-row { display: flex; gap: 12px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--paper-dimmer); }
+.sized-lbl { font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint); width: 40px; flex-shrink: 0; text-align: right; }
+.sized-text {
+  font-family: var(--font-preview); font-feature-settings: var(--font-features);
+  line-height: 1.2; color: var(--ink); outline: none; flex: 1; overflow: hidden;
+  white-space: nowrap; text-overflow: ellipsis; cursor: text;
+}
+.sized-text.wrap { white-space: normal; overflow: visible; }
+.text-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 700px) { .text-2col { grid-template-columns: 1fr; } }
+
+/* ── OpenType ────────────────────────────────────────────────── */
+.ot-section { border: 1px solid var(--paper-dimmer); margin-bottom: 12px; }
+.ot-sec-hdr {
+  display: flex; align-items: center; gap: 12px; padding: 8px 14px;
+  background: var(--paper-dim); border-bottom: 1px solid var(--paper-dimmer); cursor: pointer;
+}
+.ot-sec-hdr:hover { background: var(--paper-dimmer); }
+.ot-tag {
+  font-family: var(--ff-mono); font-size: 11px; font-weight: 700;
+  background: var(--ink); color: var(--white); padding: 2px 7px; flex-shrink: 0;
+}
+.ot-tag.on { background: var(--orange); }
+.ot-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+.ot-desc { font-size: 12px; color: var(--ink-faint); flex: 1; }
+.ot-toggle-btn {
+  font-family: var(--ff-mono); font-size: 9px; padding: 3px 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; border: 1px solid var(--paper-dimmer); background: transparent;
+  color: var(--ink-faint); cursor: pointer; flex-shrink: 0; white-space: nowrap;
+}
+.ot-toggle-btn:hover { border-color: var(--orange); color: var(--orange); }
+.ot-toggle-btn.on { background: var(--orange); color: var(--white); border-color: var(--orange); }
+.ot-body { display: grid; grid-template-columns: 1fr 1fr; }
+.ot-col { padding: 14px 16px; }
+.ot-col + .ot-col { border-left: 1px solid var(--paper-dimmer); }
+.ot-col-label {
+  font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint); text-transform: uppercase;
+  letter-spacing: 0.08em; margin-bottom: 8px; display: block;
+}
+.ot-sample {
+  font-family: var(--font-preview);
+  font-size: 28px; line-height: 1.25; color: var(--ink);
+}
+.ot-sample.size-sm { font-size: 16px; }
+.ot-sample-off { font-feature-settings: "kern" 0, "liga" 0, "calt" 0; }
+/* each .ot-sample-on gets inline font-feature-settings from JS */
+
+/* ── Footer ─────────────────────────────────────────────────── */
+.site-footer {
+  padding: 14px 32px; display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--paper-dimmer); background: var(--paper); flex-shrink: 0; flex-wrap: wrap; gap: 8px;
+}
+.footer-l, .footer-r {
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.footer-link { color: var(--ink-faint); text-decoration: underline; }
+.footer-link:hover { color: var(--orange); }
+
+/* ── Feedback Panel ──────────────────────────────────────────── */
+#fb-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: 340px;
+  background: var(--white); border-left: 1px solid var(--paper-dimmer);
+  z-index: 500; transform: translateX(100%); transition: transform 280ms cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: -4px 0 20px rgba(0,0,0,.12);
+}
+#fb-panel.open { transform: translateX(0); }
+.fb-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; height: 52px; border-bottom: 1px solid var(--paper-dimmer);
+  background: var(--ink); flex-shrink: 0;
+}
+.fb-hdr-title {
+  font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--white); font-family: var(--ff-mono);
+}
+.fb-close {
+  background: none; border: none; color: rgba(255,255,255,.5);
+  font-size: 20px; cursor: pointer; padding: 0 4px; line-height: 1;
+}
+.fb-close:hover { color: var(--white); }
+.fb-mode-tabs {
+  display: flex; border-bottom: 1px solid var(--paper-dimmer); flex-shrink: 0; background: var(--paper-dim);
+}
+.fb-mode-tab {
+  flex: 1; padding: 9px 0; font-family: var(--ff-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase; border: none; background: transparent;
+  color: var(--ink-faint); cursor: pointer; border-bottom: 2px solid transparent; transition: all 100ms;
+}
+.fb-mode-tab.active { color: var(--orange); border-bottom-color: var(--orange); background: var(--white); }
+.fb-mode-tab:not(.active):hover { color: var(--ink); }
+#fb-panel-body { flex: 1; overflow-y: auto; padding: 16px; }
+.fb-section { margin-bottom: 18px; }
+.fb-sec-title {
+  font-family: var(--ff-mono); font-size: 9px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--orange);
+  margin-bottom: 9px; display: block;
+}
+.fb-inp {
+  width: 100%; padding: 7px 10px; border: 1px solid var(--paper-dimmer);
+  font-family: var(--ff-sans); font-size: 12px; color: var(--ink);
+  background: var(--paper); outline: none; margin-bottom: 6px;
+}
+.fb-inp:focus { border-color: var(--orange); background: var(--white); }
+textarea.fb-inp { resize: vertical; min-height: 44px; }
+.fb-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+.fb-btn {
+  font-family: var(--ff-mono); font-size: 10px; padding: 5px 10px;
+  border: 1px solid var(--paper-dimmer); background: transparent;
+  color: var(--ink-faint); cursor: pointer; flex-shrink: 0; white-space: nowrap;
+}
+.fb-btn:hover { border-color: var(--orange); color: var(--orange); }
+.fb-btn.p { background: var(--orange); color: var(--white); border-color: var(--orange); }
+.fb-btn.p:hover { background: var(--orange-dark); }
+.fb-btn-full { width: 100%; text-align: center; }
+.fb-q {
+  background: var(--paper); padding: 10px 12px; margin-bottom: 8px;
+  border: 1px solid var(--paper-dimmer);
+}
+.fb-qtext { font-size: 12px; color: var(--ink); margin-bottom: 7px; line-height: 1.4; }
+.fb-qn {
+  font-family: var(--ff-mono); font-size: 10px; color: var(--orange);
+  margin-right: 5px; font-weight: 700;
+}
+.fb-rating { display: flex; gap: 4px; margin-bottom: 3px; flex-wrap: wrap; }
+.fb-num {
+  width: 28px; height: 28px; border: 1px solid var(--paper-dimmer);
+  background: transparent; font-size: 11px; cursor: pointer; color: var(--ink-faint);
+  font-family: var(--ff-mono); display: flex; align-items: center; justify-content: center;
+}
+.fb-num.on { background: var(--orange); color: var(--white); border-color: var(--orange); }
+.fb-num:hover:not(.on) { border-color: var(--orange); color: var(--orange); }
+.fb-rlbls { display: flex; justify-content: space-between; font-size: 9px; color: var(--ink-faint); margin-top: 3px; font-family: var(--ff-mono); }
+.fb-choices { display: flex; flex-direction: column; gap: 5px; }
+.fb-choice { font-size: 11px; color: var(--ink); cursor: pointer; display: flex; align-items: baseline; gap: 5px; }
+.fb-txt {
+  width: 100%; padding: 6px 8px; border: 1px solid var(--paper-dimmer);
+  font-family: var(--ff-sans); font-size: 11px; color: var(--ink);
+  background: var(--white); outline: none; resize: vertical;
+}
+.fb-q-edit {
+  background: var(--paper); border: 1px solid var(--paper-dimmer);
+  margin-bottom: 8px; padding: 10px 12px;
+}
+.fb-q-edit-hdr {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 7px;
+}
+.fb-type-sel {
+  font-family: var(--ff-mono); font-size: 10px; padding: 3px 18px 3px 6px;
+  border: 1px solid var(--paper-dimmer); background: var(--white); color: var(--ink);
+  outline: none; cursor: pointer; -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23916f65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 5px center; flex-shrink: 0;
+}
+.fb-q-del {
+  margin-left: auto; background: none; border: none; color: var(--ink-faint);
+  font-size: 14px; cursor: pointer; padding: 0 2px; flex-shrink: 0; line-height: 1;
+}
+.fb-q-del:hover { color: var(--orange); }
+.fb-q-extra { margin-top: 6px; }
+.fb-q-extra-row { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+.fb-tiny-label { font-family: var(--ff-mono); font-size: 9px; color: var(--ink-faint); white-space: nowrap; }
+.fb-num-inp {
+  width: 42px; padding: 4px 6px; border: 1px solid var(--paper-dimmer);
+  font-family: var(--ff-mono); font-size: 11px; text-align: center;
+  background: var(--paper); color: var(--ink); outline: none;
+}
+.fb-designer-brief { background: var(--paper-dim); padding: 12px; border: 1px solid var(--paper-dimmer); }
+.fb-brief-who { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+.fb-brief-contact { font-size: 11px; color: var(--ink-faint); font-family: var(--ff-mono); margin-bottom: 6px; }
+.fb-brief-text { font-size: 12px; color: var(--ink-mid); line-height: 1.5; }
+.fb-hint { font-size: 10px; color: var(--ink-faint); line-height: 1.5; margin-bottom: 8px; font-family: var(--ff-mono); }
+.fb-divider { height: 1px; background: var(--paper-dimmer); margin: 14px 0; }
+.fb-empty { font-size: 11px; color: var(--ink-faint); font-family: var(--ff-mono); padding: 6px 0; }
+#fb-import-inp, #designer-import-inp, #ref-pdf-inp { display: none; }
+.fb-annot-toolbar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.fb-ann-tool {
+  font-family: var(--ff-mono); font-size: 10px; padding: 5px 10px;
+  border: 1px solid var(--paper-dimmer); background: transparent;
+  color: var(--ink-faint); cursor: pointer; white-space: nowrap;
+}
+.fb-ann-tool.active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+.fb-ann-tool:hover:not(.active) { border-color: var(--orange); color: var(--orange); }
+.fb-ann-colors { display: flex; gap: 4px; align-items: center; }
+.fb-ann-color {
+  width: 22px; height: 22px; border: 2px solid transparent;
+  cursor: pointer; border-radius: 2px; flex-shrink: 0;
+}
+.fb-ann-color.active { border-color: var(--orange); outline: 1px solid var(--orange); }
+.fb-locked-notice {
+  background: #fff8e1; border: 1px solid #f0c040; padding: 8px 10px; margin-bottom: 10px;
+  font-size: 10px; color: #5c4000; font-family: var(--ff-mono); display: flex;
+  align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.fb-lock-icon { font-size: 13px; flex-shrink: 0; }
+.fb-unlock-btn {
+  margin-left: auto; font-family: var(--ff-mono); font-size: 9px; padding: 3px 8px;
+  border: 1px solid #c09000; background: transparent; color: #5c4000; cursor: pointer; white-space: nowrap;
+}
+.fb-unlock-btn:hover { background: #5c4000; color: #fff; }
+.fb-q-locked {
+  display: flex; gap: 6px; padding: 7px 0; border-bottom: 1px solid var(--paper-dimmer);
+  font-size: 11px; color: var(--ink-mid); line-height: 1.4;
+}
+.fb-q-locked:last-child { border-bottom: none; }
+.fb-q-locked-text { flex: 1; }
+
+@media (max-width: 700px) { .ot-body { grid-template-columns: 1fr; } #spec-main { padding: 16px; } .spec-tab-bar { padding: 0 16px; } .nav-row { padding: 0 16px; } body.fb-open { padding-right: 0; } }
+</style>
+</head>
+<body data-page="specimen">
+
+<header class="site-header">
+  <div class="nav-row">
+    <a class="wordmark" href="index.html">Typori</a>
+    <div class="page-tabs">
+      <a class="ptab" href="display.html">Web Display</a>
+      <a class="ptab" href="print.html">Print</a>
+      <a class="ptab" href="syllabic.html">Syllabic Grid</a>
+      <a class="ptab active" href="specimen.html">Specimen</a>
+      <a class="ptab" href="docs.html">Docs</a>
+    </div>
+    <div class="nav-right">
+      <button class="export-btn" id="btn-export-spec">Print / Export ▾</button>
+      <button class="export-btn" id="btn-fb-panel">Feedback ▸</button>
+    </div>
+  </div>
+
+  <!-- Font selector -->
+  <div class="ctrl-row">
+    <div class="ctrl-cell">
+      <span class="ctrl-label">Font</span>
+      <select class="ctrl-select" id="src-preview">
+        <option value="loaded">Loaded</option>
+        <option value="system">System</option>
+        <option value="google">Google</option>
+      </select>
+      <select class="ctrl-select" id="fnt-preview" style="max-width:200px"></select>
+      <input type="text" class="ctrl-input sm" id="gf-preview" placeholder="Font name" style="display:none">
+      <button class="ctrl-btn" id="load-gf-preview" style="display:none">Load</button>
+    </div>
+    <div class="ctrl-cell">
+      <span class="ctrl-label">Size</span>
+      <input type="number" class="ctrl-input sm" id="global-size" value="16" min="8" max="200">
+      <span class="ctrl-label">px</span>
+    </div>
+    <div class="ctrl-cell">
+      <span class="ctrl-label">Leading</span>
+      <input type="number" class="ctrl-input sm" id="global-lh" value="1.4" min="0.8" max="3" step="0.05">
+    </div>
+    <div class="ctrl-cell">
+      <span class="ctrl-label">Tracking</span>
+      <input type="number" class="ctrl-input sm" id="global-ls" value="0" min="-0.1" max="0.5" step="0.001">
+      <span class="ctrl-label">em</span>
+    </div>
+    <div class="ctrl-cell grow">
+      <span class="ctrl-label">Color</span>
+      <input type="color" id="preview-color" value="#1a1c1c" style="width:22px;height:22px;border:1px solid var(--paper-dimmer);cursor:pointer;padding:0">
+      <span class="ctrl-label" style="margin-left:8px">BG</span>
+      <input type="color" id="preview-bg" value="#fefcfa" style="width:22px;height:22px;border:1px solid var(--paper-dimmer);cursor:pointer;padding:0">
+    </div>
+    <div class="ctrl-cell">
+      <button class="ctrl-btn" id="ot-toggle-btn">OpenType ▾</button>
+    </div>
+  </div>
+
+  <!-- OpenType panel -->
+  <div class="ot-panel" id="ot-panel" hidden>
+    <!-- populated by JS -->
+  </div>
+</header>
+
+<div class="spec-tab-bar">
+  <button class="spec-tab active" data-tab="waterfall">Waterfall</button>
+  <button class="spec-tab" data-tab="lettering">Lettering</button>
+  <button class="spec-tab" data-tab="words">Words</button>
+  <button class="spec-tab" data-tab="text">Text</button>
+  <button class="spec-tab" data-tab="hinting">Hinting</button>
+  <button class="spec-tab" data-tab="characters">Characters</button>
+  <button class="spec-tab" data-tab="strings">Strings</button>
+  <button class="spec-tab" data-tab="opentype">OpenType</button>
+</div>
+
+<main id="spec-main">
+
+  <!-- ── TAB: WATERFALL ─────────────────────────────────── -->
+  <div id="tab-waterfall" class="tab-panel active">
+    <p class="sec-title">Waterfall — click any line to edit</p>
+    <div class="waterfall-controls">
+      <div class="wf-ctrl">
+        <label>Min size</label>
+        <input type="range" id="wf-min" min="6" max="24" value="8">
+        <span id="wf-min-val">8px</span>
+      </div>
+      <div class="wf-ctrl">
+        <label>Max size</label>
+        <input type="range" id="wf-max" min="48" max="200" value="96">
+        <span id="wf-max-val">96px</span>
+      </div>
+    </div>
+    <input type="text" class="wf-text-input" id="wf-input" value="Grumpy wizards make toxic brew for the evil Queen and Jack" placeholder="Type your test string…" autocomplete="off" spellcheck="false">
+    <div class="waterfall" id="waterfall"></div>
+  </div>
+
+  <!-- ── TAB: LETTERING ───────────────────────────────── -->
+  <div id="tab-lettering" class="tab-panel">
+    <p class="sec-title">Lettering Sheet — full character overview</p>
+    <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <label class="ctrl-label">Size</label>
+      <input type="range" id="lettering-size" min="24" max="120" value="72" style="width:100px;accent-color:var(--orange)">
+      <span id="lettering-size-val" style="font-family:var(--ff-mono);font-size:10px;color:var(--ink);min-width:32px">72px</span>
+    </div>
+    <div id="lettering-display" contenteditable="true" spellcheck="false" style="font-family:var(--font-preview);font-feature-settings:var(--font-features);text-align:center;line-height:1.3;color:var(--ink);padding:24px 0">
+      <div style="font-size:72px;margin-bottom:0.5em">A B C D E F G H<br>I J K L M N O P Q R<br>S T U V W X Y Z</div>
+      <div style="font-size:72px;margin-bottom:0.5em">a b c d e f g h i j k l m<br>n o p q r s t u v w x y z</div>
+      <div style="font-size:72px;margin-bottom:0.5em">1 2 3 4 5 6 7 8 9 0</div>
+      <div style="font-size:72px;margin-bottom:0.5em">( { [ . , ¡ ! ¿ ? * ] } )<br># $ € £ % @ &amp; ¶ § ¢ † ‡<br>° _ : ; + − × ÷ ' ' " "<br>«  »  ‹  ›  ©  ®  ™  &lt;  &gt;  ±  ≤  ≥</div>
+    </div>
+  </div>
+
+  <!-- ── TAB: WORDS ─────────────────────────────────────── -->
+  <div id="tab-words" class="tab-panel">
+    <p class="sec-title">Words — mixed-case text at descending sizes</p>
+    <div id="words-display"></div>
+  </div>
+
+  <!-- ── TAB: TEXT ──────────────────────────────────────── -->
+  <div id="tab-text" class="tab-panel">
+    <p class="sec-title">Text — paragraph setting at reading sizes</p>
+    <div id="text-display"></div>
+  </div>
+
+  <!-- ── TAB: HINTING ──────────────────────────────────── -->
+  <div id="tab-hinting" class="tab-panel">
+    <p class="sec-title">Hinting — fine pixel sizes</p>
+    <p class="sec-subtitle" id="hinting-ua" style="margin-bottom:16px"></p>
+    <div id="hinting-display"></div>
+  </div>
+
+  <!-- ── TAB: CHARACTERS ───────────────────────────────── -->
+  <div id="tab-characters" class="tab-panel">
+    <p class="sec-title">Character Set — click any cell to copy</p>
+    <div class="script-tabs" id="script-tabs"></div>
+    <div class="char-grid" id="char-grid"></div>
+  </div>
+
+  <!-- ── TAB: STRINGS ──────────────────────────────────── -->
+  <div id="tab-strings" class="tab-panel">
+    <div class="size-ctrl">
+      <span class="ctrl-label">Size:</span>
+      <button class="size-btn" data-size="14">14</button>
+      <button class="size-btn active" data-size="18">18</button>
+      <button class="size-btn" data-size="24">24</button>
+      <button class="size-btn" data-size="36">36</button>
+    </div>
+    <div id="strings-container"></div>
+  </div>
+
+  <!-- ── TAB: OPENTYPE ─────────────────────────────────── -->
+  <div id="tab-opentype" class="tab-panel">
+    <p class="sec-title">OpenType Features — compare on/off for each feature</p>
+    <div id="ot-features-container"></div>
+    <p style="font-family:var(--ff-mono);font-size:9px;color:var(--ink-faint);margin-top:16px;line-height:1.6">
+      Note: Indic shaping features (akhn, blwf, half, pstf, etc.) are not listed — they are always active and required for correct rendering.
+      Toggling them off would produce incorrect glyph sequences.
+    </p>
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <span class="footer-l">&copy; 2026 Subhashish Panigrahi / O Foundation</span>
+</footer>
+
+<div id="fb-panel">
+  <div class="fb-hdr">
+    <span class="fb-hdr-title">Font Feedback</span>
+    <button class="fb-close" id="btn-fb-close">✕</button>
+  </div>
+  <div class="fb-mode-tabs">
+    <button class="fb-mode-tab active" data-mode="designer">Designer</button>
+    <button class="fb-mode-tab" data-mode="tester">Tester</button>
+  </div>
+  <div id="fb-panel-body"></div>
+</div>
+
+<script>
+// ── IndexedDB ─────────────────────────────────────────────────
+const DB_NAME = 'typori-fonts', DB_VER = 1, STORE = 'fonts';
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE, { keyPath: 'name' });
+    req.onsuccess = e => res(e.target.result);
+    req.onerror = e => rej(e.target.error);
+  });
+}
+async function getFonts() {
+  const db = await openDB();
+  const tx = db.transaction(STORE, 'readonly');
+  const req = tx.objectStore(STORE).getAll();
+  return new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = rej; });
+}
+
+const SYSTEM_FONTS = [
+  'system-ui','Arial','Arial Narrow','Georgia','Times New Roman','Courier New',
+  'Helvetica','Verdana','Trebuchet MS','Impact','Palatino','Garamond',
+  'Optima','Futura','Gill Sans','Calibri','Cambria','Consolas',
+];
+const googleFontsLoaded = new Set(JSON.parse(localStorage.getItem('typori-gfonts') || '[]'));
+let loadedFonts = [];
+
+// ── OpenType data ─────────────────────────────────────────────
+const OT_FEATURES = [
+  { tag:'kern', name:'Kerning', desc:'Adjusts spacing between specific letter pairs', sample:'WAVE AWAY TOWARD AVOCADO Ty Wa Te To', default:true },
+  { tag:'liga', name:'Standard Ligatures', desc:'Replaces character sequences with single glyphs (fi fl ff ffi ffl)', sample:'fi fl ff ffi ffl ft fb fj ffj Africa', default:true },
+  { tag:'calt', name:'Contextual Alternates', desc:'Selects alternate glyphs based on surrounding context', sample:'The quick brown fox over the lazy', default:true },
+  { tag:'dlig', name:'Discretionary Ligatures', desc:'Optional stylistic ligatures beyond the standard set', sample:'st ct sp fi fl ff ffi ffl The', default:false },
+  { tag:'smcp', name:'Small Caps', desc:'Replaces lowercase letters with small capitals', sample:'abcdefghijklmnopqrstuvwxyz', default:false },
+  { tag:'c2sc', name:'Caps to Small Caps', desc:'Replaces uppercase with small capitals', sample:'ABCDEFGHIJKLMNOPQRSTUVWXYZ', default:false },
+  { tag:'onum', name:'Old-style Numerals', desc:'Numerals with descenders for body text', sample:'0123456789  1,234.56  $9.99  2026', default:false },
+  { tag:'lnum', name:'Lining Numerals', desc:'Full-height numerals aligned with capitals', sample:'0123456789  1,234.56  $9.99  2026', default:false },
+  { tag:'pnum', name:'Proportional Figures', desc:'Numerals with proportional (non-equal) spacing', sample:'1111  0000  100  111  1001  1010', default:false },
+  { tag:'tnum', name:'Tabular Figures', desc:'Numerals with fixed equal-width spacing for tables', sample:'1111  0000  100  111  1001  1010', default:false },
+  { tag:'frac', name:'Fractions', desc:'Formats slash fractions with proper glyph', sample:'1/2  1/3  2/3  1/4  3/4  5/8  7/9', default:false },
+  { tag:'zero', name:'Slashed Zero', desc:'Distinguishes zero from uppercase O', sample:'0  O  0O  O0  00  1010  IO0  0123', default:false },
+  { tag:'ordn', name:'Ordinals', desc:'Formats ordinal suffixes as superscripts', sample:'1st  2nd  3rd  4th  5th  No.  Nº', default:false },
+  { tag:'sups', name:'Superscript', desc:'Characters formatted as superscripts', sample:'a¹  b²  c³  x²+y²=z²  E=mc²', default:false },
+  { tag:'subs', name:'Subscript', desc:'Characters formatted as subscripts', sample:'H₂O  CO₂  C₆H₁₂O₆  H₂SO₄', default:false },
+  { tag:'swsh', name:'Swash', desc:'Substitutes flourished swash variant glyphs', sample:'The quick brown fox jumps lively', default:false },
+  { tag:'hist', name:'Historical Forms', desc:'Historical or archaic alternate letterforms', sample:'The quick brown fox over the lazy', default:false },
+];
+
+const otState = {};
+OT_FEATURES.forEach(f => { otState[f.tag] = f.default; });
+
+function buildFeatureString(overrides = {}) {
+  const merged = Object.assign({}, otState, overrides);
+  return Object.entries(merged).map(([k, v]) => `"${k}" ${v ? 1 : 0}`).join(', ');
+}
+function applyFeatures() {
+  document.documentElement.style.setProperty('--font-features', buildFeatureString());
+  refreshOTTab();
+}
+
+// ── Character set data ────────────────────────────────────────
+function range(start, end) {
+  const out = [];
+  for (let i = start; i <= end; i++) out.push(String.fromCodePoint(i));
+  return out;
+}
+
+const CHAR_SETS = {
+  'Basic Latin': range(0x21, 0x7E),
+  'Latin Ext': 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚě'.split(''),
+  'Numerals': '0 1 2 3 4 5 6 7 8 9 ½ ⅓ ⅔ ¼ ¾ ⅛ ⅜ ⅝ ⅞ % ‰ ° ⁰ ¹ ² ³ ⁴ ₀ ₁ ₂ ₃ ₄'.split(' ').filter(Boolean),
+  'Punctuation': '. , ; : ! ? \' " - – — … ( ) [ ] { } ⟨ ⟩ / \\ @ # $ % ^ & * + = < > | ~ ` « » ‹ › • · † ‡ § ¶ © ® ™ ° ± × ÷ ∞ √ ∑ ∏ ∫'.split(' ').filter(Boolean),
+  'Currencies': '$ € £ ¥ ₹ ₽ ¢ ₩ ₪ ฿ ₺ ₴ ₦ ₵ ₡ ₲ ₱ ₫ ₭ ₮ ₯ ₰ ₳ ₶ ₷ ₸ ₼ ₾'.split(' ').filter(Boolean),
+  'Odia': 'ଅ ଆ ଇ ଈ ଉ ଊ ଋ ଌ ଏ ଐ ଓ ଔ ଁ ଂ ଃ କ ଖ ଗ ଘ ଙ ଚ ଛ ଜ ଝ ଞ ଟ ଠ ଡ ଢ ଣ ତ ଥ ଦ ଧ ନ ପ ଫ ବ ଭ ମ ଯ ର ଳ ଵ ଶ ଷ ସ ହ ଡ଼ ଢ଼ ୟ ା ି ୀ ୁ ୂ ୃ େ ୈ ୋ ୌ ୍ ୦ ୧ ୨ ୩ ୪ ୫ ୬ ୭ ୮ ୯'.split(' ').filter(Boolean),
+  'Devanagari': 'अ आ इ ई उ ऊ ऋ ए ऐ ओ औ अं अः क ख ग घ ङ च छ ज झ ञ ट ठ ड ढ ण त थ द ध न प फ ब भ म य र ल व श ष स ह ् ा ि ी ु ू ृ े ै ो ौ ०  १ २ ३ ४ ५ ६ ७ ८ ९'.split(' ').filter(Boolean),
+  'Bengali': 'অ আ ই ঈ উ ঊ ঋ এ ঐ ও ঔ ক খ গ ঘ ঙ চ ছ জ ঝ ঞ ট ঠ ড ঢ ণ ত থ দ ধ ন প ফ ব ভ ম য র ল শ ষ স হ ড় ঢ় য় া ি ী ু ূ ৃ ে ৈ ো ৌ ্ ং ঃ ০ ১ ২ ৩ ৪ ৫ ৬ ৭ ৮ ৯'.split(' ').filter(Boolean),
+  'Malayalam': 'അ ആ ഇ ഈ ഉ ഊ ഋ എ ഏ ഐ ഒ ഓ ഔ ക ഖ ഗ ഘ ങ ച ഛ ജ ഝ ഞ ട ഠ ഡ ഢ ണ ത ഥ ദ ധ ന പ ഫ ബ ഭ മ യ ര ല വ ശ ഷ സ ഹ ള ഴ റ ്  ോ ൊ ൂ ൈ ൌ ാ ൻ ൺ ൽ ൾ ൿ'.split(' ').filter(Boolean),
+  'Tamil': 'அ ஆ இ ஈ உ ஊ எ ஏ ஐ ஒ ஓ ஔ க ங ச ஞ ட ண த ந ப ம ய ர ல வ ழ ள ற ன ஸ ஷ ஜ ஹ ா ி ீ ு ூ ெ ே ை ொ ோ ௌ ் ந ண ன ம ய ர ல வ ழ ள ற ௦ ௧ ௨ ௩ ௪ ௫'.split(' ').filter(Boolean),
+  'Kannada': 'ಅ ಆ ಇ ಈ ಉ ಊ ಋ ಎ ಏ ಐ ಒ ಓ ಔ ಕ ಖ ಗ ಘ ಙ ಚ ಛ ಜ ಝ ಞ ಟ ಠ ಡ ಢ ಣ ತ ಥ ದ ಧ ನ ಪ ಫ ಬ ಭ ಮ ಯ ರ ಲ ವ ಶ ಷ ಸ ಹ ಳ ಾ ಿ ೀ ು ೂ ೃ ೆ ೇ ೈ ೊ ೋ ೌ ್ ೦ ೧ ೨ ೩ ೪ ೫'.split(' ').filter(Boolean),
+  'Telugu': 'అ ఆ ఇ ఈ ఉ ఊ ఋ ఎ ఏ ఐ ఒ ఓ ఔ క ఖ గ ఘ ఙ చ ఛ జ ఝ ఞ ట ఠ డ ఢ ణ త థ ద ధ న ప ఫ బ భ మ య ర ల వ శ ష స హ ళ ా ి ీ ు ూ ృ ే ై ో ౌ ్ ౦ ౧ ౨ ౩ ౪ ౫'.split(' ').filter(Boolean),
+};
+let activeScript = 'Basic Latin';
+
+// ── Strings data ──────────────────────────────────────────────
+const STRINGS_DATA = [
+  {
+    title: 'English Pangrams',
+    items: [
+      ['en', 'The quick brown fox jumps over the lazy dog'],
+      ['en', 'Grumpy wizards make toxic brew for the evil Queen and Jack'],
+      ['en', 'Pack my box with five dozen liquor jugs'],
+      ['en', 'Sphinx of black quartz, judge my vow'],
+      ['en', 'How vexingly quick daft zebras jump'],
+      ['en', 'The five boxing wizards jump quickly'],
+      ['en', 'Bright vixens jump; dozy fowl quack'],
+      ['en', 'Jived fox nymph grabs quick waltz'],
+    ]
+  },
+  {
+    title: 'Kerning Pairs',
+    items: [
+      ['Uppercase', 'AV AW AY AT AX AF AC AO AG AQ TA WA YA VA XA FA OA GA QA'],
+      ['Mixed case', 'Ty Wa Te To Ti Yo Ya Yo Ta Te We Wa Wi Wo Tr Tw Wr'],
+      ['Lowercase', 'av aw ay at af ac ao ag aq ta wa ya va xa fa oa ga'],
+      ['f-pairs', 'fi fj fk fl ff fb fh ft fu fy fi ffi ffl ffl ffj'],
+      ['Round chars', 'oc od og oe of oh oo op or co do go oe of cc oo'],
+      ['Diagonal strings', 'AVAWATAYAZ VWXYZ Axe Ivy Two Oar Pew Eat War Via Kay'],
+    ]
+  },
+  {
+    title: 'Spacing — hamburgefons',
+    items: [
+      ['Sans', 'hamburgefons hamburgefonstiv Hamburgefons'],
+      ['Caps', 'HAMBURGEFONS HAMBURGEFONSTIV'],
+      ['Minimum', 'minimum maximum illumination millimeter'],
+      ['Round', 'cocooned oddments common moonbeam cocoon'],
+      ['Mixed', 'Hamburg Hamburgefons hamburgefons Typori'],
+    ]
+  },
+  {
+    title: 'All Caps & Figures',
+    items: [
+      ['Uppercase', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'],
+      ['Lowercase', 'abcdefghijklmnopqrstuvwxyz'],
+      ['Numerals', '0 1 2 3 4 5 6 7 8 9   1234567890   0123456789'],
+      ['Fractions', '1/2  1/3  2/3  1/4  3/4  1/5  2/5  3/5  4/5'],
+      ['Math', '2+2=4  x²+y²=z²  ∞  ≈  ≠  ≤  ≥  π  ∑'],
+      ['Currency', '$1,234.56  €1.234,56  £1,234  ₹1,234  ¥12,345'],
+    ]
+  },
+  {
+    title: 'Punctuation & Marks',
+    items: [
+      ['Basic', '. , ; : ! ? – — … \' " ( ) [ ] { }'],
+      ['Smart quotes', '"Hello," she said. "Don\'t go." He replied: "I must."'],
+      ['Apostrophes', "it's I've can't won't they're we're I'll you'd"],
+      ['Special', '© ® ™ • · † ‡ § ¶ @ # & * % ° ± × ÷'],
+    ]
+  },
+  {
+    title: 'Odia / ଓଡ଼ିଆ',
+    items: [
+      ['ବାକ୍ୟ', 'ସବୁ ମଣିଷ ଜନ୍ମକାଳରୁ ସ୍ୱାଧୀନ। ସେମାନଙ୍କର ମର୍ଯ୍ୟାଦା ଓ ଅଧିକାର ସମାନ।'],
+      ['ଅ-ଆ', 'ଅ ଆ ଇ ଈ ଉ ଊ ଋ ଏ ଐ ଓ ଔ ଁ ଂ ଃ'],
+      ['ବ୍ୟଞ୍ଜନ', 'କ ଖ ଗ ଘ ଙ ଚ ଛ ଜ ଝ ଞ ଟ ଠ ଡ ଢ ଣ ତ ଥ ଦ ଧ ନ ପ ଫ ବ ଭ ମ ଯ ର ଳ ଵ ଶ ଷ ସ ହ ଡ଼ ଢ଼ ୟ'],
+      ['ସଂଖ୍ୟା', '୦ ୧ ୨ ୩ ୪ ୫ ୬ ୭ ୮ ୯'],
+    ]
+  },
+  {
+    title: 'Devanagari / देवनागरी',
+    items: [
+      ['बाक्य', 'सभी मनुष्यों को गौरव और अधिकारों के मामले में जन्मजात स्वतन्त्रता और समानता प्राप्त है।'],
+      ['स्वर', 'अ आ इ ई उ ऊ ऋ ए ऐ ओ औ अं अः'],
+      ['व्यञ्जन', 'क ख ग घ ङ च छ ज झ ञ ट ठ ड ढ ण त थ द ध न प फ ब भ म य र ल व श ष स ह'],
+      ['संख्या', '० १ २ ३ ४ ५ ६ ७ ८ ९'],
+      ['मराठी पॅन्ग्राम', 'श्रावणात म्हणजे वर्षा ऋतुमध्ये प्रातःकाळी चौदा भारदस्त वाघ, पंधरा सिंह, आठ लांडगे, नऊ बैल, छोटुसा पांढरा उंदिर, खारूताई इत्यादी प्राणी, पक्षी एकत्र झऱ्याजवळ फिरत असत।'],
+    ]
+  },
+  {
+    title: 'Devanagari — Character Groups',
+    items: [
+      ['Bhagwat group 1', 'ग म भ न   र स   त ल   व ब क ख   च घ ध छ'],
+      ['Bhagwat group 2', 'प ष फ ण   ट ठ ढ द   ङ ड इ ई झ ह   य थ   श ळ ज्ञ ञ'],
+      ['Bhagwat vowels', 'अ आ ओ औ अं अः   ए ऐ   ऋ ॠ   उ ऊ'],
+      ['Dalvi roots A', 'अ आ उ ऊ ओ औ अं अः ञ   इ ई झ ङ ड ह ज्ञ   ए ऐ'],
+      ['Dalvi roots B', 'ख र स क ब व श   त ल   भ ग न म'],
+      ['Dalvi roots C', 'द ट ठ ढ क्ष ळ   ध घ छ च ज   थ य   ष प फ ण'],
+      ['Knots & loops', 'नगरसमइदझज्ञ — क्षभ — थधशढछ — ऋ ॠ'],
+    ]
+  },
+  {
+    title: 'Devanagari — Conjuncts & Ligatures',
+    items: [
+      ['Common conjuncts', 'क्ष त्र ज्ञ श्र द्ध ग्र प्र ब्र क्र ट्ट ड्ड न्त न्द म्ब म्प स्त स्थ'],
+      ['Half forms', 'क्क क्त क्न क्म क्य क्र क्ल क्व क्ष   ग्ग ग्ध ग्न ग्म ग्य ग्र ग्ल ग्व'],
+      ['Reph', 'र्क र्ख र्ग र्घ र्च र्ज र्ट र्ड र्त र्थ र्द र्ध र्न र्प र्ब र्म र्य र्ल र्व र्श र्स र्ह'],
+      ['Anusvara variants', 'पंकज पङ्कज   कंचन कञ्चन   चंचल चञ्चल   कंटक कण्टक   दंत दन्त   कंपन कम्पन'],
+      ['Vowel matras', 'क का कि की कु कू कृ के कै को कौ कं कः'],
+    ]
+  },
+  {
+    title: 'Other South Asian Scripts',
+    items: [
+      ['Bengali', 'সকল মানুষ স্বাধীনভাবে সমান মর্যাদা এবং অধিকার নিয়ে জন্মগ্রহণ করে।'],
+      ['Malayalam', 'മനുഷ്യരെല്ലാവരും തുല്യ അന്തസ്സോടും അവകാശങ്ങളോടുംകൂടി ജനിച്ചവരാണ്'],
+      ['Tamil', 'மனிதப் பிறிவினர் சகலரும் சுதந்திரமாகவே பிறக்கின்றனர்'],
+      ['Kannada', 'ಎಲ್ಲಾ ಮಾನವರೂ ಸ್ವತಂತ್ರರಾಗಿ ಮತ್ತು ಸಮಾನ ಘನತೆ ಮತ್ತು ಹಕ್ಕುಗಳೊಂದಿಗೆ ಜನಿಸಿದ್ದಾರೆ.'],
+      ['Telugu', 'ప్రతి మనిషికి స్వేచ్ఛగా జన్మించే హక్కు ఉంది, అందరూ సమానులే'],
+    ]
+  },
+];
+
+// ── Font setup ────────────────────────────────────────────────
+function setPreviewFont(family) {
+  const val = family ? `'${family}', system-ui, sans-serif` : 'system-ui, sans-serif';
+  document.documentElement.style.setProperty('--font-preview', val);
+  localStorage.setItem('typori-specimen-font', JSON.stringify({ family, src: document.getElementById('src-preview').value }));
+}
+
+function populateFontSelect(selectEl, src) {
+  selectEl.innerHTML = '';
+  if (src === 'loaded') {
+    if (!loadedFonts.length) { selectEl.innerHTML = '<option value="">— load fonts on landing page —</option>'; return; }
+    selectEl.innerHTML = loadedFonts.map(f => {
+      const slug = f.name.replace(/[^a-zA-Z0-9]/g, '-');
+      return `<option value="${slug}">${f.name}</option>`;
+    }).join('');
+  } else if (src === 'system') {
+    selectEl.innerHTML = SYSTEM_FONTS.map(f => `<option value="${f}">${f}</option>`).join('');
+  } else {
+    const gf = [...googleFontsLoaded];
+    selectEl.innerHTML = gf.length
+      ? gf.map(n => `<option value="${n}">${n}</option>`).join('')
+      : '<option value="">— load a Google Font below —</option>';
+  }
+}
+
+function setupFontControl() {
+  const srcSel = document.getElementById('src-preview');
+  const fntSel = document.getElementById('fnt-preview');
+  const gfInput = document.getElementById('gf-preview');
+  const loadBtn = document.getElementById('load-gf-preview');
+
+  const update = src => {
+    gfInput.style.display = src === 'google' ? '' : 'none';
+    loadBtn.style.display = src === 'google' ? '' : 'none';
+    populateFontSelect(fntSel, src);
+    if (fntSel.value) setPreviewFont(fntSel.value);
+  };
+
+  srcSel.onchange = () => update(srcSel.value);
+  fntSel.onchange = () => setPreviewFont(fntSel.value);
+
+  loadBtn.onclick = () => {
+    const name = gfInput.value.trim(); if (!name) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}:wght@100;200;300;400;500;600;700;800;900&display=swap`;
+    document.head.appendChild(link);
+    link.onload = () => {
+      googleFontsLoaded.add(name);
+      localStorage.setItem('typori-gfonts', JSON.stringify([...googleFontsLoaded]));
+      populateFontSelect(fntSel, 'google');
+      fntSel.value = name;
+      setPreviewFont(name);
+    };
+  };
+
+  const saved = JSON.parse(localStorage.getItem('typori-specimen-font') || 'null');
+  if (saved) {
+    srcSel.value = saved.src || 'loaded';
+    update(srcSel.value);
+    if (saved.family && fntSel.querySelector(`option[value="${saved.family}"]`)) {
+      fntSel.value = saved.family;
+      setPreviewFont(saved.family);
+    }
+  } else {
+    update('loaded');
+  }
+}
+
+// ── Global controls ───────────────────────────────────────────
+function applyGlobalControls() {
+  const size = document.getElementById('global-size').value || 16;
+  const lh = document.getElementById('global-lh').value || 1.4;
+  const ls = document.getElementById('global-ls').value || 0;
+  document.getElementById('strings-container').querySelectorAll('.string-text').forEach(el => {
+    el.style.fontSize = size + 'px';
+    el.style.lineHeight = lh;
+    el.style.letterSpacing = ls + 'em';
+  });
+}
+
+['global-size','global-lh','global-ls'].forEach(id => {
+  document.getElementById(id).addEventListener('input', applyGlobalControls);
+});
+
+document.getElementById('preview-color').addEventListener('input', e => {
+  document.documentElement.style.setProperty('--ink', e.target.value);
+});
+document.getElementById('preview-bg').addEventListener('input', e => {
+  document.documentElement.style.setProperty('--white', e.target.value);
+  document.documentElement.style.setProperty('--paper', e.target.value);
+});
+
+// ── OT Panel ──────────────────────────────────────────────────
+function buildOTPanel() {
+  const panel = document.getElementById('ot-panel');
+  panel.innerHTML = OT_FEATURES.map(f =>
+    `<label class="ot-feat-check" title="${f.desc}">
+      <input type="checkbox" data-feat="${f.tag}" ${f.default ? 'checked' : ''}>
+      <span class="ot-tag-sm" style="font-family:var(--ff-mono);font-size:9px;background:var(--ink);color:var(--white);padding:1px 5px">${f.tag}</span>
+      ${f.name}
+    </label>`
+  ).join('');
+
+  panel.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      otState[cb.dataset.feat] = cb.checked;
+      applyFeatures();
+    });
+  });
+}
+
+document.getElementById('ot-toggle-btn').addEventListener('click', () => {
+  const p = document.getElementById('ot-panel');
+  p.hidden = !p.hidden;
+  document.getElementById('ot-toggle-btn').classList.toggle('active', !p.hidden);
+});
+
+// ── Waterfall ─────────────────────────────────────────────────
+const WATERFALL_SIZES = [96,72,60,48,36,30,24,18,16,14,12,10,8];
+
+function buildWaterfall() {
+  const min  = parseInt(document.getElementById('wf-min').value)  || 8;
+  const max  = parseInt(document.getElementById('wf-max').value)  || 96;
+  const sizes = WATERFALL_SIZES.filter(sz => sz >= min && sz <= max);
+  const wf   = document.getElementById('waterfall');
+  const text = document.getElementById('wf-input').value;
+  wf.innerHTML = '';
+  sizes.forEach(sz => {
+    const line = document.createElement('div');
+    line.className = 'wf-line';
+    line.innerHTML = `<span class="wf-size-label">${sz}px</span>
+      <div class="wf-text" contenteditable="true" style="font-size:${sz}px" spellcheck="false" data-sz="${sz}">${text}</div>`;
+    wf.appendChild(line);
+  });
+}
+
+document.getElementById('wf-input').addEventListener('input', e => {
+  document.querySelectorAll('.wf-text').forEach(el => { el.textContent = e.target.value; });
+});
+
+['wf-min','wf-max'].forEach(id => {
+  document.getElementById(id).addEventListener('input', e => {
+    document.getElementById(id + '-val').textContent = e.target.value + 'px';
+    buildWaterfall();
+  });
+});
+
+// ── Characters ────────────────────────────────────────────────
+function buildScriptTabs() {
+  const bar = document.getElementById('script-tabs');
+  bar.innerHTML = Object.keys(CHAR_SETS).map(name =>
+    `<button class="script-tab${name === activeScript ? ' active' : ''}" data-script="${name}">${name}</button>`
+  ).join('');
+  bar.querySelectorAll('.script-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeScript = btn.dataset.script;
+      bar.querySelectorAll('.script-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderCharGrid();
+    });
+  });
+}
+
+function renderCharGrid() {
+  const grid = document.getElementById('char-grid');
+  const chars = CHAR_SETS[activeScript] || [];
+  grid.innerHTML = chars.map(ch => {
+    const cp = ch.codePointAt(0).toString(16).toUpperCase().padStart(4,'0');
+    return `<div class="char-cell" data-char="${ch}" title="U+${cp} — click to copy">
+      <span class="char-glyph">${ch}</span>
+      <span class="char-code">U+${cp}</span>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.char-cell').forEach(cell => {
+    cell.addEventListener('click', () => {
+      navigator.clipboard?.writeText(cell.dataset.char).catch(() => {});
+      cell.classList.add('copied');
+      setTimeout(() => cell.classList.remove('copied'), 600);
+    });
+  });
+}
+
+// ── Strings ───────────────────────────────────────────────────
+function buildStrings() {
+  const container = document.getElementById('strings-container');
+  container.innerHTML = STRINGS_DATA.map(sec =>
+    `<div class="string-section">
+      <p class="sec-title">${sec.title}</p>
+      ${sec.items.map(([lang, text]) =>
+        `<div class="string-item">
+          <span class="string-lang">${lang}</span>
+          <div class="string-text" contenteditable="true" spellcheck="false">${text}</div>
+        </div>`
+      ).join('')}
+    </div>`
+  ).join('');
+}
+
+document.querySelectorAll('.size-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.string-text').forEach(el => {
+      el.style.fontSize = btn.dataset.size + 'px';
+    });
+  });
+});
+
+// ── OpenType tab ──────────────────────────────────────────────
+function buildOTTab() {
+  const container = document.getElementById('ot-features-container');
+  container.innerHTML = OT_FEATURES.map(f => {
+    const on = otState[f.tag];
+    return `<div class="ot-section" data-feat="${f.tag}">
+      <div class="ot-sec-hdr">
+        <span class="ot-tag${on ? ' on' : ''}">${f.tag}</span>
+        <span class="ot-name">${f.name}</span>
+        <span class="ot-desc">${f.desc}</span>
+        <button class="ot-toggle-btn${on ? ' on' : ''}" data-feat="${f.tag}">${on ? 'ON' : 'OFF'}</button>
+      </div>
+      <div class="ot-body">
+        <div class="ot-col">
+          <span class="ot-col-label">Feature OFF</span>
+          <div class="ot-sample ot-sample-off">${f.sample}</div>
+        </div>
+        <div class="ot-col">
+          <span class="ot-col-label">Feature ON</span>
+          <div class="ot-sample ot-sample-on" style='font-feature-settings: "${f.tag}" 1'>${f.sample}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  container.querySelectorAll('.ot-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const feat = btn.dataset.feat;
+      otState[feat] = !otState[feat];
+      applyFeatures();
+      // sync checkbox in OT panel
+      const cb = document.querySelector(`#ot-panel input[data-feat="${feat}"]`);
+      if (cb) cb.checked = otState[feat];
+    });
+  });
+}
+
+function refreshOTTab() {
+  OT_FEATURES.forEach(f => {
+    const sec = document.querySelector(`.ot-section[data-feat="${f.tag}"]`);
+    if (!sec) return;
+    const on = otState[f.tag];
+    sec.querySelector('.ot-tag').classList.toggle('on', on);
+    const btn = sec.querySelector('.ot-toggle-btn');
+    btn.classList.toggle('on', on);
+    btn.textContent = on ? 'ON' : 'OFF';
+  });
+}
+
+// ── Lettering ─────────────────────────────────────────────────
+const letSlider = document.getElementById('lettering-size');
+letSlider.addEventListener('input', () => {
+  document.getElementById('lettering-size-val').textContent = letSlider.value + 'px';
+  document.querySelectorAll('#lettering-display > div').forEach(el => {
+    el.style.fontSize = letSlider.value + 'px';
+  });
+});
+
+// ── Words ─────────────────────────────────────────────────────
+const WORDS_TEXT = 'Arrowroot Barley Chervil Dumpling Endive Flaxseed Garbanzo Hijiki Jicama Kale Lychee Marjoram Nectarine Oxtail Pizza Quinoa Roquefort Squash Tofu Uppuma Vanilla Wheat Xergis Yogurt Zweiback 0 1 2 3 4 5 6 7 8 9 ! ?';
+const WORDS_SIZES = [96,84,72,60,48,36,30,24,20,16,14,12];
+
+function buildWords() {
+  const el = document.getElementById('words-display');
+  el.innerHTML = WORDS_SIZES.map(sz =>
+    `<div class="sized-row">
+      <span class="sized-lbl">${sz}px</span>
+      <div class="sized-text" contenteditable="true" spellcheck="false" style="font-size:${sz}px">${WORDS_TEXT}</div>
+    </div>`
+  ).join('');
+}
+
+// ── Text ──────────────────────────────────────────────────────
+const TEXT_PARA = 'Grumpy wizards make toxic brew for the evil Queen and Jack. One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin. He lay on his armour-like back, and if he lifted his head a little he could see his brown belly, slightly domed and divided by arches into stiff sections. The bedding was hardly able to cover it and seemed ready to slide off any moment. 01234567890';
+const TEXT_SIZES = [20,19,18,17,16,15,14,13,12,11];
+
+function buildText() {
+  const el = document.getElementById('text-display');
+  const rows = TEXT_SIZES.map(sz =>
+    `<div class="sized-row" style="align-items:flex-start">
+      <span class="sized-lbl">${sz}px</span>
+      <div class="text-2col" style="flex:1">
+        <div class="sized-text wrap" contenteditable="true" spellcheck="false" style="font-size:${sz}px;line-height:1.5">${TEXT_PARA}</div>
+        <div class="sized-text wrap" contenteditable="true" spellcheck="false" style="font-size:${sz}px;line-height:1.5">${TEXT_PARA}</div>
+      </div>
+    </div>`
+  ).join('');
+  el.innerHTML = rows;
+}
+
+// ── Hinting ───────────────────────────────────────────────────
+const HINTING_TEXT = 'abcdefghijklmnopqrstuvwxyz.:;,   ABCDEFGHIJKLMNOPQRSTUVWXYZ   1234567890 @ &!?#$€%';
+const HINTING_SIZES_LARGE = [48, 28];
+const HINTING_SIZES_FINE = Array.from({length: 16}, (_,i) => 24 - i); // 24 down to 9
+
+function buildHinting() {
+  document.getElementById('hinting-ua').textContent = navigator.userAgent;
+  const sizes = [...HINTING_SIZES_LARGE, ...HINTING_SIZES_FINE];
+  document.getElementById('hinting-display').innerHTML = sizes.map(sz =>
+    `<div class="sized-row">
+      <span class="sized-lbl">${sz}px</span>
+      <div class="sized-text" contenteditable="true" spellcheck="false" style="font-size:${sz}px">${HINTING_TEXT}</div>
+    </div>`
+  ).join('');
+}
+
+// ── Tab switching ─────────────────────────────────────────────
+document.querySelectorAll('.spec-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.spec-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Init ──────────────────────────────────────────────────────
+async function init() {
+  loadedFonts = await getFonts();
+  for (const f of loadedFonts) {
+    if (!f.isGoogle && f.buffer) {
+      const slug = f.name.replace(/[^a-zA-Z0-9]/g, '-');
+      try { const ff = new FontFace(slug, f.buffer); await ff.load(); document.fonts.add(ff); } catch(e) {}
+    }
+  }
+  for (const name of googleFontsLoaded) {
+    if (!document.querySelector(`link[href*="${encodeURIComponent(name)}"]`)) {
+      const link = document.createElement('link'); link.rel = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}:wght@100;400;700;900&display=swap`;
+      document.head.appendChild(link);
+    }
+  }
+
+  setupFontControl();
+  buildOTPanel();
+  buildWaterfall();
+  buildWords();
+  buildText();
+  buildHinting();
+  buildScriptTabs();
+  renderCharGrid();
+  buildStrings();
+  buildOTTab();
+  applyFeatures();
+
+  // Print / Export button
+  document.getElementById('btn-export-spec')?.addEventListener('click', () => {
+    window.print();
+  });
+
+  window.typoriExportPDFQA = () => {};
+  fbInit();
+}
+init();
+</script>
+</body>
+</html>

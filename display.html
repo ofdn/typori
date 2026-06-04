@@ -549,6 +549,19 @@ textarea.fb-inp { resize: vertical; min-height: 44px; }
 .export-dropdown button:hover { background: var(--paper-dim); color: var(--ink); }
 .export-dropdown .export-dd-divider { height: 1px; background: var(--paper-dimmer); }
 
+/* ── OpenType panel ──────────────────────────────────────────── */
+.ot-panel {
+  background: var(--paper-dim); border-bottom: 1px solid var(--paper-dimmer);
+  padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center;
+}
+.ot-panel[hidden] { display: none; }
+.ot-feat-check {
+  display: flex; align-items: center; gap: 5px; cursor: pointer;
+  font-family: var(--ff-mono); font-size: 10px; color: var(--ink-mid); user-select: none;
+}
+.ot-feat-check input[type="checkbox"] { width: 12px; height: 12px; margin: 0; accent-color: var(--orange); cursor: pointer; }
+.ot-feat-check:hover { color: var(--ink); }
+
 @media (max-width: 900px) { .preview-grid { grid-template-columns: 1fr; } .preview-card { aspect-ratio: 1 / 1.35; } }
 @media (max-width: 700px) { #preview-canvas { padding: 16px; } .ctrl-row { flex-wrap: nowrap; overflow-x: auto; } body.fb-open { padding-right: 0; } }
 </style>
@@ -563,6 +576,8 @@ textarea.fb-inp { resize: vertical; min-height: 44px; }
       <a class="ptab active" href="display.html">Web Display</a>
       <a class="ptab" href="print.html">Print</a>
       <a class="ptab" href="syllabic.html">Syllabic Grid</a>
+      <a class="ptab" href="specimen.html">Specimen</a>
+      <a class="ptab" href="docs.html">Docs</a>
     </div>
     <div class="nav-right">
       <label class="ctrl-label" for="page-size" style="margin:0">Canvas</label>
@@ -671,6 +686,25 @@ textarea.fb-inp { resize: vertical; min-height: 44px; }
       <input type="text" class="ctrl-input sm" id="gf-body" placeholder="Font name" style="display:none">
       <button class="ctrl-btn" id="load-gf-body" data-role="body" style="display:none">Load</button>
     </div>
+    <div class="ctrl-cell">
+      <button class="ctrl-btn" id="display-ot-toggle">OpenType ▾</button>
+    </div>
+  </div>
+
+  <!-- OpenType features panel -->
+  <div class="ot-panel" id="display-ot-panel" hidden>
+    <label class="ot-feat-check" title="Kerning: adjust spacing between letter pairs"><input type="checkbox" data-feat="kern" checked> kern</label>
+    <label class="ot-feat-check" title="Standard Ligatures: fi fl ff ffi ffl"><input type="checkbox" data-feat="liga" checked> liga</label>
+    <label class="ot-feat-check" title="Contextual Alternates"><input type="checkbox" data-feat="calt" checked> calt</label>
+    <label class="ot-feat-check" title="Discretionary Ligatures"><input type="checkbox" data-feat="dlig"> dlig</label>
+    <label class="ot-feat-check" title="Small Caps"><input type="checkbox" data-feat="smcp"> smcp</label>
+    <label class="ot-feat-check" title="Old-style Numerals"><input type="checkbox" data-feat="onum"> onum</label>
+    <label class="ot-feat-check" title="Lining Numerals"><input type="checkbox" data-feat="lnum"> lnum</label>
+    <label class="ot-feat-check" title="Tabular Figures"><input type="checkbox" data-feat="tnum"> tnum</label>
+    <label class="ot-feat-check" title="Fractions"><input type="checkbox" data-feat="frac"> frac</label>
+    <label class="ot-feat-check" title="Slashed Zero"><input type="checkbox" data-feat="zero"> zero</label>
+    <label class="ot-feat-check" title="Ordinals"><input type="checkbox" data-feat="ordn"> ordn</label>
+    <label class="ot-feat-check" title="Swash"><input type="checkbox" data-feat="swsh"> swsh</label>
   </div>
 </header>
 
@@ -1138,7 +1172,11 @@ async function exportPrint(cardId) {
   const card = document.getElementById(`card-${cardId}`);
   if (!card) return;
   const inner = card.querySelector('[class^="layout-"],[class*=" layout-"]') || card;
-  await buildPrintWindow([inner.outerHTML], false);
+  const annotSvg = card.querySelector('.annot-svg');
+  let html = `<div style="position:relative">` + inner.outerHTML;
+  if (annotSvg) html += annotSvg.outerHTML;
+  html += `</div>`;
+  await buildPrintWindow([html], false);
 }
 
 document.getElementById('preview-grid').addEventListener('click', e => {
@@ -1148,6 +1186,27 @@ document.getElementById('preview-grid').addEventListener('click', e => {
 
 // Per-card print (hover buttons)
 // (bulk export wired in init() below)
+
+// ── OpenType features ─────────────────────────────────────────
+const displayOTState = { kern:true, liga:true, calt:true, dlig:false, smcp:false, onum:false, lnum:false, tnum:false, frac:false, zero:false, ordn:false, swsh:false };
+function buildDisplayFeatures() {
+  return Object.entries(displayOTState).map(([k,v]) => `"${k}" ${v?1:0}`).join(', ');
+}
+function applyDisplayOT() {
+  const feats = buildDisplayFeatures();
+  document.querySelectorAll('.preview-card *').forEach(el => { el.style.fontFeatureSettings = feats; });
+  document.documentElement.style.setProperty('--display-font-features', feats);
+}
+document.getElementById('display-ot-toggle')?.addEventListener('click', () => {
+  const panel = document.getElementById('display-ot-panel');
+  panel.hidden = !panel.hidden;
+  document.getElementById('display-ot-toggle').classList.toggle('active', !panel.hidden);
+});
+document.getElementById('display-ot-panel')?.addEventListener('change', e => {
+  const cb = e.target; if (!cb.dataset.feat) return;
+  displayOTState[cb.dataset.feat] = cb.checked;
+  applyDisplayOT();
+});
 
 // ── Init ──────────────────────────────────────────────────────
 async function init() {
@@ -1177,7 +1236,11 @@ async function init() {
     for (let i = 1; i <= 6; i++) {
       const card = document.getElementById(`card-${i}`); if (!card) continue;
       const inner = card.querySelector('[class^="layout-"],[class*=" layout-"]') || card;
-      inners.push(inner.outerHTML);
+      const annotSvg = card.querySelector('.annot-svg');
+      let html = `<div style="position:relative">` + inner.outerHTML;
+      if (annotSvg) html += annotSvg.outerHTML;
+      html += `</div>`;
+      inners.push(html);
     }
     return inners;
   }
